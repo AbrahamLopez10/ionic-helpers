@@ -1,0 +1,36 @@
+page-register {
+    div[instructions] {
+        padding: 1em;
+        font-size: 0.9em;
+
+        p {
+            line-height: 1.2em;
+        }
+    }
+
+    ion-list {
+        margin-bottom: 1em !important;
+    }
+
+    .terms {
+        margin-bottom: 2em;
+        padding: 0 1em;
+        font-size: 0.85em;
+        line-height: 1.4em;
+    }
+
+    a.centered {
+        display: block;
+        margin: 1em 0;
+        font-size: 1.1em;
+        text-align: center;
+        color: color($colors, primary);
+        text-decoration: underline;
+    }
+
+    button[medium] {
+        width: 200px;
+        display: block;
+        margin: 0 auto !important;
+    }
+}

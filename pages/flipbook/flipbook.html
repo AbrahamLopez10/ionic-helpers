@@ -1,0 +1,20 @@
+<ion-header [style.opacity]="headerVisible ? 1 : 0">
+  <ion-navbar [hideBackButton]="true">
+    <ion-title>{{title}}</ion-title>
+    <ion-buttons end>
+      <button ion-button icon-only (click)="goBack()">
+        <ion-icon ios="ios-close-circle-outline" md="ios-close-circle-outline"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+<ion-slides #flipbook *ngIf="images.length != 0" (ionSlideDrag)="allowSliding()" (ionSlideDidChange)="slideChanged()">
+  <ion-slide *ngFor="let image of images" (click)="slideTapped()">
+    <img src="{{image.url}}" zoom-pan />
+  </ion-slide>
+</ion-slides>
+
+<ion-footer [style.opacity]="footerVisible ? 1 : 0">
+  <p>{{comments}}</p>
+</ion-footer>

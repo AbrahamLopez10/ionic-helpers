@@ -1,0 +1,40 @@
+<ion-content padding>
+  <img class="logo" src="assets/img/logo.jpg" />
+
+  <p welcome>Welcome, {{user.getFirstName()}}</p>
+
+  <ion-grid>
+    <ion-row>
+      <ion-col width-50>
+        <button ion-button icon-left large outline>
+          <ion-icon name="options"></ion-icon>
+          Button 1
+        </button>
+      </ion-col>
+      <ion-col width-50>
+        <button ion-button icon-left large outline>
+          <ion-icon name="options"></ion-icon>
+          Button 2
+        </button>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col width-50>
+        <button ion-button icon-left large outline>
+          <ion-icon name="options"></ion-icon>
+          Button 3
+        </button>
+      </ion-col>
+      <ion-col width-50>
+        <button ion-button icon-left large outline>
+          <ion-icon name="options"></ion-icon>
+          Button 4
+        </button>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+  <button ion-button icon-left clear logout (click)="logout()">
+    <ion-icon name="log-out"></ion-icon>
+    Logout
+  </button>
+</ion-content>

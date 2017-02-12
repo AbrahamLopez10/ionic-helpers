@@ -1,0 +1,33 @@
+<ion-header>
+  <ion-navbar>
+    <ion-title>Login</ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content>
+  <img class="logo" src="assets/img/logo.jpg" />
+  
+  <form (ngSubmit)="doLogin()">
+    <ion-list>
+      <ion-item>
+        <ion-label floating>Username</ion-label>
+        <ion-input type="text" [(ngModel)]="username" name="username" autocorrect="off" autocomplete="off" autocapitalize="off"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label floating>Password</ion-label>
+        <ion-input type="password" [(ngModel)]="password" name="password"></ion-input>
+      </ion-item>
+    </ion-list>
+    <button ion-button icon-left centered type="submit">
+      <ion-icon name="log-in"></ion-icon>
+      Login
+    </button>
+  </form>
+  <div padding style="text-align: center;">
+    <p>New? Click below to sign up:</p>
+    <button ion-button icon-left outline small (click)="register()">
+      <ion-icon name="create"></ion-icon>
+    Create Account
+    </button>
+  </div>
+</ion-content>

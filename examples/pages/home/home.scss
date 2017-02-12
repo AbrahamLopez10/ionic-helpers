@@ -1,0 +1,32 @@
+page-home {
+    p[welcome] {
+        color: #555;
+        text-align: center;
+    }
+
+    ion-grid ion-col {
+        padding: 0.5em !important;
+
+        button {
+            display: block;
+            padding: 2em 0 !important;
+            background-color: #f7f7f7 !important;
+            background: linear-gradient(to bottom, #ffffff 0%,#f6f6f6 47%,#ededed 100%);
+            box-shadow: 1px 1px 10px 1px #ddd;
+            border-radius: 5px !important;
+
+            &.activated {
+                background-color: color($colors, primary) !important;
+            }
+
+            span.button-inner {
+                font-size: 5vw !important;
+            }
+        }
+    }
+
+    button[logout] {
+        display: block;
+        margin: 1em auto 0 auto;
+    }
+}
