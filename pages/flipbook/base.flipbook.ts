@@ -1,4 +1,3 @@
-import { ViewChild } from '@angular/core';
 import { NavController, NavParams, Slides } from 'ionic-angular';
 
 export interface FlipbookImage {
