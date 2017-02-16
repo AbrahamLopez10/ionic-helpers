@@ -729,7 +729,7 @@ export var Util = {
 	},
 
 	oniOSDevice: function() {
-	    return (navigator.userAgent.match(/(iphone|ipad|ipod)/i));
+	    return (navigator.userAgent.match(/(iphone|ipad|ipod)/i) ? true : false);
 	},
 
 	openURL: function(url, options?){
