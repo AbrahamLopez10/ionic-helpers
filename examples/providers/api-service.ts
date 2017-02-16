@@ -1,10 +1,10 @@
 import { AlertController, LoadingController, ToastController } from 'ionic-angular';
-import { AbstractAPIService, Entity, UserInterface, APIRequestOptions } from '../../providers/abstract-api-service'; // '../ionic2-helpers/providers/abstract-api-service';
+import { AbstractAPIService, Entity, UserInterface } from '../../providers/abstract-api-service'; // '../ionic2-helpers/providers/abstract-api-service';
 import { Injectable } from '@angular/core';
 import { Http } from '@angular/http';
 import { Util } from '../../libs/util'; // '../ionic2-helpers/libs/util';
 
-export class User implements UserInterface {
+export class User extends Entity implements UserInterface {
   public id: number;
   public username: string;
   public name: string;

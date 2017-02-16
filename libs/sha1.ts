@@ -210,7 +210,7 @@ function str2rstr_utf8(input)
 /*
   * Encode a string as utf-16
   */
-function str2rstr_utf16le(input)
+/*function str2rstr_utf16le(input)
 {
   var output = "";
   for(var i = 0; i < input.length; i++)
@@ -226,7 +226,7 @@ function str2rstr_utf16be(input)
     output += String.fromCharCode((input.charCodeAt(i) >>> 8) & 0xFF,
                                     input.charCodeAt(i)        & 0xFF);
   return output;
-}
+}*/
 
 /*
   * Convert a raw string to an array of big-endian words

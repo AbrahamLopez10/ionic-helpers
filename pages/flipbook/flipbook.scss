@@ -5,6 +5,19 @@ page-flipbook {
         opacity: 1;
         transition: opacity 0.2s ease-out;
     }
+
+    ion-navbar {
+        color: #fff;
+        
+        .toolbar-background {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        ion-buttons button {
+            color: #fff !important;
+            font-size: 1.2em !important;
+        }
+    }
     
     ion-footer {
         background: rgba(0, 0, 0, 0.8) !important;

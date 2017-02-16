@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { ViewChild } from '@angular/core';
 import { NavController, NavParams, Slides } from 'ionic-angular';
 
 export interface FlipbookImage {
@@ -13,20 +13,19 @@ export class BaseFlipbookPage {
   public activeIndex: number;
   public headerVisible: boolean = true;
   public footerVisible: boolean = false;
+
+  protected navCtrl: NavController;
+  protected navParams: NavParams;
+  protected slides: Slides;
+
   private zoomDetectionTimer;
   private wasZoomed = false;
   private tappingBlocked = false;
 
-  @ViewChild('flipbook')
-  private slides: Slides;
-
-  constructor(
-    public navCtrl: NavController,
-    public navParams: NavParams,
-  ) {
-    this.title = navParams.get('title');
-    this.images = navParams.get('images');
-    this.activeIndex = navParams.get('index') || 0;
+  init() {
+    this.title = this.navParams.get('title') || '';
+    this.images = this.navParams.get('images');
+    this.activeIndex = this.navParams.get('index') || 0;
     
     this.zoomDetectionTimer = setInterval(() => {
       let isZoomed = this.isSliderZoomed();
