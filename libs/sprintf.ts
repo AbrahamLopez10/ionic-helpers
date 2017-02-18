@@ -1,3 +1,4 @@
+import { sha1 } from './sha1';
 var re = {
     not_string: /[^s]/,
     number: /[def]/,
@@ -12,25 +13,27 @@ var re = {
 
 var _sprintf_cache = {};
 
-export var sprintf = function(...args) {
-    var key = args[0], cache = _sprintf_cache;
+export var sprintf = function(format: string, ...args: any[]) {
+    let key = sha1(format), cache = _sprintf_cache;
+
     if (!(cache[key] && cache.hasOwnProperty(key))) {
-        cache[key] = parse(key)
+        cache[key] = _sprintf_parse(format);
     }
-    return format.call(null, cache[key], args)
+
+    return _sprintf_format.call(null, cache[key], args)
 }
 
-export var vsprintf = function(fmt, argv, _argv) {
-    _argv = Array.prototype.slice.call((argv || []), 0);
-    _argv.splice(0, 0, fmt)
-    return sprintf.apply(null, _argv)
+export var vsprintf = function(format: string, args: any[]) {
+    let _argv = args.slice();
+    _argv.unshift(format);
+    return sprintf.apply(null, _argv);
 }
 
 /**
  * Helpers
  */
 
-function format(parse_tree, argv) {
+function _sprintf_format(parse_tree, argv) {
     var cursor = 1, tree_length = parse_tree.length, node_type = "", arg, output = [], i, k, match, pad, pad_character, pad_length, is_positive = true, sign = ""
     for (i = 0; i < tree_length; i++) {
         node_type = get_type(parse_tree[i])
@@ -112,7 +115,7 @@ function format(parse_tree, argv) {
     return output.join("")
 }
 
-function parse(fmt) {
+function _sprintf_parse(fmt) {
     var _fmt = fmt, match = [], parse_tree = [], arg_names = 0
     while (_fmt) {
         if ((match = re.text.exec(_fmt)) !== null) {

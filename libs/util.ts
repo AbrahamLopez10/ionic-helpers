@@ -8,6 +8,7 @@
 import { UI } from './ui';
 import { sha1 } from './sha1';
 
+declare var cordova;
 declare var requestFileSystem, webkitRequestFileSystem, resolveLocalFileSystemURL, geolocation;
 declare var LocalFileSystem, TEMPORARY;
 declare var FileEntry, FileTransfer, FileTransferError, Connection;

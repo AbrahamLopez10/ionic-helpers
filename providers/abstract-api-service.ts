@@ -21,7 +21,7 @@ export class Entity {
   }
 
   asPlainObject() {
-    let object = {};
+    let object: any = {};
 
     for(var key in this){
       object[key] = this[key];
@@ -43,6 +43,7 @@ export class APIRequestOptions {
   useOfflineCache: boolean = false;
   useFastCache: boolean = false;
   showLoader: boolean = true;
+  showErrors: boolean = true;
 }
 
 class CacheResult {
@@ -140,7 +141,7 @@ export abstract class AbstractAPIService {
         return;
       }
       else{
-        this.handleError(this.ERROR_CONNECTION, onError);
+        this.handleError(options, this.ERROR_CONNECTION, onError);
       }
     }
 
@@ -178,12 +179,12 @@ export abstract class AbstractAPIService {
           this.runRequestsWaiting(requestHash, results, 'onSuccess');
         }
         else{
-          this.handleError(json, onError);
+          this.handleError(options, json, onError);
           this.runRequestsWaiting(requestHash, json.error, 'onError');
         }
       }).catch((error) => {
         if(loader) loader.dismiss().catch(() => {});
-        this.handleError(error, onError);
+        this.handleError(options, error, onError);
         this.runRequestsWaiting(requestHash, error, 'onError');
       });
   }
@@ -206,10 +207,10 @@ export abstract class AbstractAPIService {
         if(json && json.status){
           onSuccess(json);
         }
-        else this.handleError(json, onError);
+        else this.handleError(options, json, onError);
       }).catch((error) => {
         if(loader) loader.dismiss().catch(() => {});
-        this.handleError(error, onError);
+        this.handleError(options, error, onError);
       });
   }
 
@@ -486,7 +487,7 @@ export abstract class AbstractAPIService {
     return params;
   }
 
-  private handleError(response: any, callback?: (error: string, response?: any) => void): void {
+  private handleError(options: APIRequestOptions, response: any, callback?: (error: string, response?: any) => void): void {
     let error: string;
 
     if(response instanceof Response){
@@ -527,11 +528,12 @@ export abstract class AbstractAPIService {
 
     console.trace('[AbstractAPIService] Error: ', error);
 
+    if(options.showErrors){
+      UI.alert(this.alertCtrl, error);
+    }
+
     if(callback instanceof Function){
       callback(error, response);
-    }
-    else{
-      UI.alert(this.alertCtrl, error);
     }
   }
 }
