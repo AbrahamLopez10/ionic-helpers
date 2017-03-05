@@ -11,6 +11,8 @@ import { sha1 } from '../libs/sha1';
 import { UI } from '../libs/ui';
 import { Util } from '../libs/util';
 
+declare var cordova;
+
 export class Entity {
   constructor(data?: Object) {
     if(data){
@@ -94,6 +96,7 @@ export abstract class AbstractAPIService {
   private requestsWaiting: Object = {};
   private _user: UserInterface;
   private _password: string;
+  private _appVersion: string;
 
   /*
   // Add the following constructor in the child class:
@@ -109,6 +112,16 @@ export abstract class AbstractAPIService {
 
   constructor() {
     this.loadCache();
+
+    if(window['cordova'] && cordova.getAppVersion){
+      cordova.getAppVersion.getVersionNumber((version) => {
+        this._appVersion = version;
+      });
+    }
+  }
+
+  getAppVersion(){
+    return this._appVersion;
   }
 
   getEndpointUrl(endpoint: string): string {
@@ -189,7 +202,7 @@ export abstract class AbstractAPIService {
       });
   }
 
-  post(endpoint: string, params: Object, onSuccess: (response?: any) => void, onError?: (error: string, response?: any) => void, options?: APIRequestOptions, headers: Object = {}): void {
+  post(endpoint: string, params: Object, onSuccess?: (response?: any) => void, onError?: (error: string, response?: any) => void, options?: APIRequestOptions, headers: Object = {}): void {
     if(!params) params = {};
     if(!options) options = new APIRequestOptions();
 
@@ -205,7 +218,7 @@ export abstract class AbstractAPIService {
         let json = response.json();
 
         if(json && json.status){
-          onSuccess(json);
+          if(onSuccess) onSuccess(json);
         }
         else this.handleError(options, json, onError);
       }).catch((error) => {
@@ -230,6 +243,11 @@ export abstract class AbstractAPIService {
         if(value !== null && excludedFields.indexOf(key) == -1 && (/string|number|boolean/).test(typeof value)){
           params[key] = value;
         }
+      }
+
+      if(!options){
+        options = new APIRequestOptions();
+        options.showErrors = false;
       }
 
       this.post('create/' + modelName, params, (response) => {
@@ -263,6 +281,11 @@ export abstract class AbstractAPIService {
       }
     }
 
+    if(!options){
+      options = new APIRequestOptions();
+      options.showErrors = false;
+    }
+
     this.get<T>('read/' + modelName, params, (results: T[]) => {
       onSuccess(results as T[]);
     }, (error, response) => {
@@ -289,6 +312,11 @@ export abstract class AbstractAPIService {
         }
       }
 
+      if(!options){
+        options = new APIRequestOptions();
+        options.showErrors = false;
+      }
+
       this.post('update/' + modelName, params, (response) => {
         this.clearCRUDCache(modelName);
         onSuccess(response.entity as T);
@@ -302,6 +330,11 @@ export abstract class AbstractAPIService {
     this.checkPassword(() => {
       let user = this.getInternalUser();
 
+      if(!options){
+        options = new APIRequestOptions();
+        options.showErrors = false;
+      }
+      
       this.post('delete/' + modelName, {
         _OWNER_ID: user ? user.id : '',
         _OWNER_TOKEN: user ? user.token : '',
@@ -322,7 +355,7 @@ export abstract class AbstractAPIService {
       if(onCancel) onCancel();
       UI.alert(this.alertCtrl, error);
     }
-    else onError(error, response);
+    else if(onError) onError(error, response);
   }
 
   login<T>(modelName: string, username: string, password: string, onSuccess: (user: T) => void, onError?: (error: string, response?: any) => void, options?: APIRequestOptions) {
@@ -477,6 +510,10 @@ export abstract class AbstractAPIService {
     let params = new URLSearchParams('', new APIQueryEncoder());
 
     params.set('key', this.API_KEY);
+
+    if(this._appVersion){
+      params.set('_VERSION', this._appVersion);
+    }
 
     if(additionalParams){
       for(let name in additionalParams){
