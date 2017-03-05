@@ -1,20 +1,16 @@
 import { Translator } from './translator';
 
-export class Translate {
-    private bundle: string;
+export type Translation = Array<string[]>;
 
+export class Translate {
     constructor(
-        private translator: Translator
+        private translator: Translator,
+        private bundle: string
     ) {
 
     }
 
-    init(bundle: string) {
-        this.bundle = bundle;
-        return this;
-    }
-
-    register(language: string, translation: Array<string[]>) {
+    register(language: string, translation: Translation) {
         this.translator.register(this.bundle, language, translation);
     }
 
