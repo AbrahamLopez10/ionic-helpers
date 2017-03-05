@@ -776,7 +776,7 @@ export var Util = {
 		window.location.href = "tel:" + phoneNumber;
  	},
 
- 	sendEmail: function(address, subject, message){
+ 	sendEmail: function(address, subject?, message?){
 		var params = [];
 		if(subject) params.push("subject=" + encodeURIComponent(subject));
 		if(message) params.push("body=" + encodeURIComponent(message));

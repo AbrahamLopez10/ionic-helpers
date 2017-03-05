@@ -1,8 +1,6 @@
 import { Directive, ElementRef } from '@angular/core';
 
-// REQUIRES: HammerJS
-// Run the following to install:
-// npm install hammerjs --save
+// Requires: HammerJS (pre-installed with Ionic 2)
 declare var Hammer;
 
 @Directive({
