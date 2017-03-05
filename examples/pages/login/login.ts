@@ -1,7 +1,7 @@
-import { UI } from './../../ionic2-helpers/libs/ui';
-import { APIService, User } from './../../providers/api-service';
-import { RegisterPage } from './../register/register';
-import { HomePage } from './../home/home';
+import { UI } from '../../../libs/ui'; //'../../ionic2-helpers/libs/ui';
+import { APIService, User } from '../../providers/api-service';
+import { RegisterPage } from '../register/register';
+import { HomePage } from '../home/home';
 import { Component } from '@angular/core';
 import { NavController, AlertController, Events } from 'ionic-angular';
 

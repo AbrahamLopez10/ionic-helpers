@@ -7,8 +7,23 @@ import { Util } from '../../libs/util'; // '../ionic2-helpers/libs/util';
 export class User extends Entity implements UserInterface {
   public id: number;
   public username: string;
-  public name: string;
   public token: string;
+  public name: string;
+  public email: string;
+  public phone: string;
+
+  getFirstName(): string {
+    if(this.name) return '';
+
+    let name = this.name.split(' ');
+
+    if(name.length != 0){
+      let firstName = name[0].toLowerCase();
+      firstName = firstName.charAt(0).toUpperCase() + firstName.substr(1, firstName.length);
+      return firstName;
+    }
+    else return '';
+  }
 }
 
 export class UserRegistration {
@@ -36,9 +51,10 @@ export class APIService extends AbstractAPIService {
   ){
     super();
 
-    let user = Util.retrieve(this.USER_STORAGE_ID);
+    let userData = Util.retrieve(this.USER_STORAGE_ID);
 
-    if(user && user.id){
+    if(userData && userData.id){
+      let user = new User(userData);
       this.setInternalUser(user);
       this.setUser(user);
     }
