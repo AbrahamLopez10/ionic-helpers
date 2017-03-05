@@ -23,8 +23,25 @@ export class BaseFlipbookPage {
 
   init() {
     this.title = this.navParams.get('title') || '';
-    this.images = this.navParams.get('images');
     this.activeIndex = this.navParams.get('index') || 0;
+
+    if(this.navParams.get('images')){
+      let images: any[] = this.navParams.get('images');
+
+      this.images = [];
+
+      for(let item of images){
+        if(typeof item == 'string'){
+          this.images.push({
+            url: item
+          });
+        }
+        else if(typeof item == 'object'){
+          this.images.push(item as FlipbookImage);
+        }
+      }
+    }
+    else throw new Error('The "images" parameter should be passed to the FlipbookPage instance.');
     
     this.zoomDetectionTimer = setInterval(() => {
       let isZoomed = this.isSliderZoomed();
