@@ -1,5 +1,6 @@
-import { Util } from '../../../libs/util'; //'../../ionic2-helpers/libs/util';
-import { UI } from '../../../libs/ui'; //'../../ionic2-helpers/libs/ui';
+/*
+import { Util } from '../../ionic2-helpers/libs/util';
+import { UI } from '../../ionic2-helpers/libs/ui';
 import { APIService, UserRegistration, User } from './../../providers/api-service';
 import { LoginPage } from './../login/login';
 import { HomePage } from './../home/home';
@@ -54,3 +55,4 @@ export class RegisterPage {
     Util.openURL('');
   }
 }
+*/

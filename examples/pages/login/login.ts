@@ -1,4 +1,5 @@
-import { UI } from '../../../libs/ui'; //'../../ionic2-helpers/libs/ui';
+/*
+import { UI } from '../../ionic2-helpers/libs/ui';
 import { APIService, User } from '../../providers/api-service';
 import { RegisterPage } from '../register/register';
 import { HomePage } from '../home/home';
@@ -43,3 +44,4 @@ export class LoginPage {
     this.navCtrl.push(RegisterPage);
   }
 }
+*/

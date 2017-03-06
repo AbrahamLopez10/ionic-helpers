@@ -1,8 +1,9 @@
+/*
 import { AlertController, LoadingController, ToastController } from 'ionic-angular';
-import { AbstractAPIService, Entity, UserInterface } from '../../providers/abstract-api-service'; // '../ionic2-helpers/providers/abstract-api-service';
+import { AbstractAPIService, Entity, UserInterface } from '../ionic2-helpers/providers/abstract-api-service';
 import { Injectable } from '@angular/core';
 import { Http } from '@angular/http';
-import { Util } from '../../libs/util'; // '../ionic2-helpers/libs/util';
+import { Util } from '../ionic2-helpers/libs/util';
 
 export class User extends Entity implements UserInterface {
   public id: number;
@@ -99,3 +100,4 @@ export class APIService extends AbstractAPIService {
     }
   }
 }
+*/
