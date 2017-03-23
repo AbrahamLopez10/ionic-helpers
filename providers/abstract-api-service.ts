@@ -193,12 +193,18 @@ export abstract class AbstractAPIService {
         let json = response.json();
 
         if(json && json.status){
-          this.saveResultInCache(endpoint, params, json.results);
+          let results;
 
-          let results = json.results as T[];
-          
-          onSuccess(results);
-          this.runRequestsWaiting(requestHash, results, 'onSuccess');
+          if(json.results){
+            results = json.results;
+          }
+          else{
+            results = json instanceof Array ? json : [json];
+          }
+
+          this.saveResultInCache(endpoint, params, results);
+          onSuccess(results as T[]);
+          this.runRequestsWaiting(requestHash, results as T[], 'onSuccess');
         }
         else{
           this.handleError(options, json, onError);
