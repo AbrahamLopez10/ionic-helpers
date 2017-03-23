@@ -46,6 +46,14 @@ export class APIRequestOptions {
   useFastCache: boolean = false;
   showLoader: boolean = true;
   showErrors: boolean = true;
+
+  constructor(data?: Object) {
+    if(data){
+      for(var key in data){
+        this[key] = data[key];
+      }
+    }
+  }
 }
 
 class CacheResult {
@@ -130,7 +138,8 @@ export abstract class AbstractAPIService {
 
   get<T>(endpoint: string, params: Object, onSuccess: (results: T[]) => void, onError?: (error: string, response?: any) => void, options?: APIRequestOptions, headers: Object = {}): void {
     if(!params) params = {};
-    if(!options) options = new APIRequestOptions();
+    
+    options = new APIRequestOptions(options);
 
     let cacheResult = this.getCacheResult(endpoint, params);
 
@@ -204,7 +213,8 @@ export abstract class AbstractAPIService {
 
   post(endpoint: string, params: Object, onSuccess?: (response?: any) => void, onError?: (error: string, response?: any) => void, options?: APIRequestOptions, headers: Object = {}): void {
     if(!params) params = {};
-    if(!options) options = new APIRequestOptions();
+    
+    options = new APIRequestOptions(options);
 
     let loader;
     if(options.showLoader) loader = UI.loader(this.loadingCtrl);
