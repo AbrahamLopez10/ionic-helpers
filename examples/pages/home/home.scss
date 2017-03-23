@@ -1,7 +1,9 @@
 page-home {
     .logo {
-        width: 30%;
+        width: 50%;
         height: auto;
+        display: block;
+        margin: 1em auto;
     }
 
     p[welcome] {
