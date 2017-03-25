@@ -22,6 +22,20 @@ export var Util = {
 	_fileSystemInstance: null,
 	_language: 'spanish',
 
+	extend: function(object: Object, extendWith: Object): Object {
+		let newObject = {};
+		
+		for(var key in object){
+			newObject[key] = object[key];
+		}
+
+		for(var key in extendWith){
+			newObject[key] = extendWith[key];
+		}
+
+		return newObject;
+	},
+
 	setLanguage: function(language){
 		this._language = language;
 	},
