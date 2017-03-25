@@ -10,6 +10,25 @@ import { Util } from './util';
 
 declare var PushNotification;
 
+export class EasyPushOptions {
+  androidSenderID: string;
+  clearBadge: boolean;
+  alert: boolean;
+  badge: boolean;
+  sound: any;
+  vibrate: boolean;
+  forceShow: boolean; // Android only
+  clearNotifications: boolean; // Android only
+
+  constructor(data?: Object) {
+    if(data){
+      for(var key in data){
+        this[key] = data[key];
+      }
+    }
+  }
+}
+
 export var EasyPush = {
 	plugin: null,
 	customDataFieldName: "custom",
@@ -18,14 +37,11 @@ export var EasyPush = {
 	_onNotificationReceived: [],
 	_onReady: [],
 
-	init: function(onDeviceRegistered, onError, config?){
-		// onDeviceRegistered should receive one parameter: [string pushToken]
-		// onError should receive one parameter: [string error]
-
+	init: function(onDeviceRegistered: (pushToken: string) => void, onError: (error: string) => void, config?: EasyPushOptions){
 		var self = this;
 		var args = arguments;
 
-		if(!config) config = {};
+		if(!config) config = new EasyPushOptions();
 
 		// This "retry" function allows us to retry (with a delay) the calls to the PushPlugin in case it isn't loaded yet by the time init() is called
 		function retry(){
@@ -39,7 +55,7 @@ export var EasyPush = {
 			return;
 		}
 
-		if(!PushNotification){
+		if(!window['PushNotification']){
 			console.warn("[EasyPush.init] PushPlugin not available yet.");
 			retry();
 			return this;
@@ -98,27 +114,23 @@ export var EasyPush = {
 		return this;
 	},
 
-	listen: function(onNotificationReceived){
-		// onNotificationReceived callback function should receive 3 parameters: [string message], [bool applicationWasActive], [string customData], [object pushNotification]
+	listen: function(onNotificationReceived: (message: string, applicationWasActive: boolean, notificationJson: string, pushNotification: any) => void){
 		this._onNotificationReceived.push(onNotificationReceived);
 		return this;
 	},
 
-	ready: function(onReady){
-		// onReady callback function should receive 3 parameters: [string message], [bool applicationWasActive], [string customData], [object pushNotification]
+	ready: function(onReady: (pushToken: string) => void){
 		this._onReady.push(onReady);
 		return this;
 	},
 
-	hasPermission: function(callback){
+	hasPermission: function(callback: (isEnabled: boolean) => void){
 		this.plugin.hasPermission(function(data){
 			callback(data.isEnabled);
 		});
 	},
 
-	setAppBadgeNumber: function(badgeNumber){
-		badgeNumber = parseInt(badgeNumber, 10);
-
+	setAppBadgeNumber: function(badgeNumber: number){
 		if(!isNaN(badgeNumber)){
 			this.plugin.setApplicationIconBadgeNumber(function(){
 				console.log("[EasyPush.setAppBadgeNumber] Successfully updated the app\'s badge number to: " + badgeNumber);
@@ -131,10 +143,10 @@ export var EasyPush = {
 		}
 	},
 
-	getAppBadgeNumber: function(callback){
-		this.plugin.getApplicationIconBadgeNumber(function(number){
-			console.log("[EasyPush.getAppBadgeNumber] Badge number: " + number);
-			callback(number);
+	getAppBadgeNumber: function(callback: (badgeNumber: number) => void){
+		this.plugin.getApplicationIconBadgeNumber(function(badgeNumber){
+			console.log("[EasyPush.getAppBadgeNumber] Badge number: " + badgeNumber);
+			callback(badgeNumber);
 		}, function(){
 			console.error("[EasyPush.getAppBadgeNumber] Could not obtain badge number");
 		});
@@ -144,7 +156,7 @@ export var EasyPush = {
 		this.setAppBadgeNumber(0);
 	},
 
-	clearNotifications: function(callback){
+	clearNotifications: function(callback: Function){
 		this.plugin.clearAllNotifications(function(){
 			console.error("[EasyPush.clearNotifications] Notifications successfully cleared");
 			if(callback) callback();
@@ -153,7 +165,7 @@ export var EasyPush = {
 		});
 	},
 
-	_callOnReady: function(pushToken){
+	_callOnReady: function(pushToken: string){
 		for(var i=0; i<this._onReady.length; i++){
 			var callback = this._onReady[i];
 
@@ -166,7 +178,7 @@ export var EasyPush = {
 		}
 	},
 
-	_callOnNotificationReceived: function(pushNotification){
+	_callOnNotificationReceived: function(pushNotification: any){
 		var applicationWasActive = (pushNotification.additionalData.foreground ? true : false);
 
 		for(var i=0; i<this._onNotificationReceived.length; i++){
@@ -181,12 +193,12 @@ export var EasyPush = {
 		}
 	},
 
-	_saveToken: function(token){
+	_saveToken: function(token: string){
 		this._pushToken = token;
 		localStorage.setItem('EasyPush_Token', token);
 	},
 
-	getToken: function(){
+	getToken: function(): string {
 		if(!this._pushToken){
 			this._pushToken = localStorage.getItem('EasyPush_Token');
 		}
