@@ -101,7 +101,6 @@ export abstract class AbstractAPIService {
   protected CLEAR_PASSWORD_AFTER = 15; // in minutes
 
   private cache: Object = {};
-  private requestsWaiting: Object = {};
   private _user: UserInterface;
   private _password: string;
   private _appVersion: string;
@@ -136,7 +135,7 @@ export abstract class AbstractAPIService {
     return this.API_URL + endpoint;
   }
 
-  get<T>(endpoint: string, params: Object, onSuccess: (results: T[]) => void, onError?: (error: string, response?: any) => void, options?: APIRequestOptions, headers: Object = {}): void {
+  get<T>(endpoint: string, params: Object, onSuccess: (response: any, results?: T[]) => void, onError?: (error: string, response?: any) => void, options?: APIRequestOptions, headers: Object = {}): void {
     if(!params) params = {};
     
     options = new APIRequestOptions(options);
@@ -152,33 +151,20 @@ export abstract class AbstractAPIService {
       let age = (Util.getTimestamp() - cacheResult.timestamp) / 60;
 
       if(age <= this.FAST_CACHE_MAX_AGE){
-        onSuccess(cacheResult.data);
+        this.handleSuccess(cacheResult.data, onSuccess);
         return;
       }
     }
     else if(options.useOfflineCache && !Util.isOnline()){
       if(cacheResult){
         UI.toast(this.toastCtrl, this.MESSAGE_OFFLINE);
-        onSuccess(cacheResult.data);
+        this.handleSuccess(cacheResult.data, onSuccess);
         return;
       }
       else{
         this.handleError(options, this.ERROR_CONNECTION, onError);
       }
     }
-
-    let requestHash = sha1(endpoint + '|' + this.getParamsHash(params));
-
-    if(this.requestsWaiting[requestHash] !== undefined){
-      this.requestsWaiting[requestHash].push({
-        onSuccess: onSuccess,
-        onError: onError
-      });
-
-      return;
-    }
-
-    this.requestsWaiting[requestHash] = [];
 
     let loader;
     if(options.showLoader) loader = UI.loader(this.loadingCtrl);
@@ -187,34 +173,25 @@ export abstract class AbstractAPIService {
       search: this.getParams(params),
       headers: new Headers(headers)
     }).toPromise()
-      .then((response) => {
-        if(loader) loader.dismiss().catch(() => {});
-        
-        let json = response.json();
+    .then((response) => {
+      if(loader) loader.dismiss().catch(() => {});
+      
+      let json = response.json();
 
-        if(json && json.status){
-          let results;
-
-          if(json.results){
-            results = json.results;
-          }
-          else{
-            results = json instanceof Array ? json : [json];
-          }
-
-          this.saveResultInCache(endpoint, params, results);
-          onSuccess(results as T[]);
-          this.runRequestsWaiting(requestHash, results as T[], 'onSuccess');
-        }
-        else{
+      if(json){
+        if(json.status !== undefined && (json.status == 0 || json.status == 'error')){
           this.handleError(options, json, onError);
-          this.runRequestsWaiting(requestHash, json.error, 'onError');
+          return;
         }
-      }).catch((error) => {
-        if(loader) loader.dismiss().catch(() => {});
-        this.handleError(options, error, onError);
-        this.runRequestsWaiting(requestHash, error, 'onError');
-      });
+
+        this.saveResultInCache(endpoint, params, json);
+        this.handleSuccess(json, onSuccess);
+      }
+      else this.handleError(options, json, onError);
+    }).catch((error) => {
+      if(loader) loader.dismiss().catch(() => {});
+      this.handleError(options, error, onError);
+    });
   }
 
   post(endpoint: string, params: Object, onSuccess?: (response?: any) => void, onError?: (error: string, response?: any) => void, options?: APIRequestOptions, headers: Object = {}): void {
@@ -228,19 +205,24 @@ export abstract class AbstractAPIService {
     this.http.post(this.getEndpointUrl(endpoint), this.getParams(params), {
       headers: new Headers(headers)
     }).toPromise()
-      .then((response) => {
-        if(loader) loader.dismiss().catch(() => {});
-        
-        let json = response.json();
+    .then((response) => {
+      if(loader) loader.dismiss().catch(() => {});
+      
+      let json = response.json();
 
-        if(json && json.status){
-          if(onSuccess) onSuccess(json);
+      if(json){
+        if(json.status !== undefined && (json.status == 0 || json.status == 'error')){
+          this.handleError(options, json, onError);
+          return;
         }
-        else this.handleError(options, json, onError);
-      }).catch((error) => {
-        if(loader) loader.dismiss().catch(() => {});
-        this.handleError(options, error, onError);
-      });
+
+        this.handleSuccess(json, onSuccess);
+      }
+      else this.handleError(options, json, onError);
+    }).catch((error) => {
+      if(loader) loader.dismiss().catch(() => {});
+      this.handleError(options, error, onError);
+    });
   }
 
   create<T>(modelName: string, data: Object, onSuccess: (entity?: T) => void, onError?: (error: string, response: any) => void, onCancel?: Function, excludedFields: string[] = ['id'], options?: APIRequestOptions) {
@@ -302,7 +284,7 @@ export abstract class AbstractAPIService {
       options.showErrors = false;
     }
 
-    this.get<T>('read/' + modelName, params, (results: T[]) => {
+    this.get<T>('read/' + modelName, params, (response, results: T[]) => {
       onSuccess(results as T[]);
     }, (error, response) => {
       this.onCRUDError(onError, onCancel, error, response);
@@ -478,17 +460,6 @@ export abstract class AbstractAPIService {
     return itemList;
   }
 
-  private runRequestsWaiting(requestHash: string, value: any, callbackName: string) {
-    if(this.requestsWaiting[requestHash]){
-      for(let request of this.requestsWaiting[requestHash]){
-        let callback = request[callbackName];
-        callback(value);
-      }
-
-      delete this.requestsWaiting[requestHash];
-    }
-  }
-
   private getParamsHash(params: Object): string {
     return sha1(JSON.stringify(params));
   }
@@ -538,6 +509,15 @@ export abstract class AbstractAPIService {
     }
 
     return params;
+  }
+
+  private handleSuccess(response: any, onSuccess: Function) {
+    if(response.results !== undefined){
+      onSuccess(response, response.results);
+    }
+    else{
+      onSuccess(response);
+    }
   }
 
   private handleError(options: APIRequestOptions, response: any, callback?: (error: string, response?: any) => void): void {
