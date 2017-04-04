@@ -14,14 +14,15 @@ var re = {
 
 var _sprintf_cache = {};
 
-export var sprintf = function(format: string, ...args: any[]) {
+export var sprintf = function(...args) {
+    let format = arguments[0];
     let key = sha1(format), cache = _sprintf_cache;
 
     if (!(cache[key] && cache.hasOwnProperty(key))) {
         cache[key] = _sprintf_parse(format);
     }
 
-    return _sprintf_format.call(null, cache[key], args)
+    return _sprintf_format.call(null, cache[key], arguments)
 }
 
 export var vsprintf = function(format: string, args: any[]) {
