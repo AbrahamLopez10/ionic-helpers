@@ -38,6 +38,8 @@ export interface UserInterface {
   username: string;
   name: string;
   token: string;
+  email: string;
+  phone: string;
 }
 
 export class APIRequestOptions {
@@ -428,6 +430,10 @@ export abstract class AbstractAPIService {
 
   setInternalUser(user: UserInterface) {
     this._user = user as UserInterface;
+  }
+
+  getUser(): UserInterface {
+    return this.getInternalUser();
   }
 
   objectToItemArray(object: Object, valueField = 'value', nameField = 'name') {
