@@ -1,3 +1,4 @@
+import { sprintf } from './sprintf';
 /*
 @name			Util
 @description	General utility functions
@@ -1105,18 +1106,18 @@ export var Util = {
 			var hours = Math.floor(minutes / 60);
 			minutes = minutes % 60;
 
-			var hoursLabel = ((hours == 1 ? singleHourFormat : hoursFormat), hours);
-			var minutesLabel = ((minutes == 1 ? singleMinuteFormat : minutesFormat), minutes);
+			var hoursLabel = sprintf((hours == 1 ? singleHourFormat : hoursFormat), hours);
+			var minutesLabel = sprintf((minutes == 1 ? singleMinuteFormat : minutesFormat), minutes);
 
 			if(minutes > 0){
-				return ('%s, %s', hoursLabel, minutesLabel);
+				return sprintf('%s, %s', hoursLabel, minutesLabel);
 			}
 			else{
 				return hoursLabel;
 			}
 		}
 		else{
-			return ((minutes == 1 ? singleMinuteFormat : minutesFormat), minutes);
+			return sprintf((minutes == 1 ? singleMinuteFormat : minutesFormat), minutes);
 		}
 	},
 
