@@ -1,7 +1,15 @@
 <ion-header [style.opacity]="headerVisible ? 1 : 0">
   <ion-navbar [hideBackButton]="true">
+    <ion-buttons start>
+      <button *ngIf="bookmarks.length != 0" ion-button icon-only (click)="showBookmarks($event)">
+        <ion-icon name="bookmarks"></ion-icon>
+      </button>
+    </ion-buttons>
     <ion-title>{{title}}</ion-title>
     <ion-buttons end>
+      <button *ngIf="allowSharing" ion-button icon-only (click)="shareImage()">
+        <ion-icon name="share"></ion-icon>
+      </button>
       <button ion-button icon-only (click)="goBack()">
         <ion-icon ios="ios-close-circle-outline" md="ios-close-circle-outline"></ion-icon>
       </button>

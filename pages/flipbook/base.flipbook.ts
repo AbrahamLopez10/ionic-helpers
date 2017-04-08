@@ -1,8 +1,43 @@
-import { NavController, NavParams, Slides } from 'ionic-angular';
+import { Component } from '@angular/core';
+import { NavController, NavParams, Slides, Events, PopoverController, ViewController } from 'ionic-angular';
+import { SocialSharing } from "@ionic-native/social-sharing";
 
 export interface FlipbookImage {
   url: string;
   comments?: string;
+  bookmark?: string;
+}
+
+class Bookmark {
+  public name: string;
+  public index: number;
+}
+
+@Component({
+  selector: 'flipbook-bookmarks',
+  template: `
+    <ion-list>
+      <button *ngFor="let bookmark of bookmarks" ion-item (click)="select(bookmark)">
+        {{bookmark.name}}
+      </button>
+    </ion-list>
+  `
+})
+export class FlipbookBookmarksPopover {
+  public bookmarks: Bookmark[];
+
+  constructor(
+    private navParams: NavParams,
+    private events: Events,
+    private viewCtrl: ViewController
+  ){
+    this.bookmarks = navParams.get('bookmarks');
+  }
+
+  select(bookmark: Bookmark){
+    this.events.publish('flipbook:slideTo', bookmark.index);
+    this.viewCtrl.dismiss();
+  }
 }
 
 export class BaseFlipbookPage {
@@ -12,9 +47,15 @@ export class BaseFlipbookPage {
   public activeIndex: number;
   public headerVisible: boolean = true;
   public footerVisible: boolean = false;
+  public bookmarks: Bookmark[];
+  public allowSharing: boolean = false;
 
   protected navCtrl: NavController;
   protected navParams: NavParams;
+  protected events: Events;
+  protected popoverCtrl: PopoverController;
+  protected sharing: SocialSharing;
+  
   protected slides: Slides;
 
   private zoomDetectionTimer;
@@ -24,13 +65,22 @@ export class BaseFlipbookPage {
   init() {
     this.title = this.navParams.get('title') || '';
     this.activeIndex = this.navParams.get('index') || 0;
+    this.bookmarks = [];
+
+    if(this.navParams.get('allowSharing')){
+      this.allowSharing = true;
+    }
 
     if(this.navParams.get('images')){
-      let images: any[] = this.navParams.get('images');
+      let images: FlipbookImage[] = this.navParams.get('images');
 
       this.images = [];
 
+      let index = -1;
+
       for(let item of images){
+        index ++;
+
         if(typeof item == 'string'){
           this.images.push({
             url: item
@@ -38,6 +88,13 @@ export class BaseFlipbookPage {
         }
         else if(typeof item == 'object'){
           this.images.push(item as FlipbookImage);
+
+          if(item.bookmark){
+            this.bookmarks.push({
+              name: item.bookmark,
+              index: index
+            });
+          }
         }
       }
     }
@@ -56,15 +113,38 @@ export class BaseFlipbookPage {
 
   ionViewDidEnter() {
     if(this.activeIndex > 0){
-      let index = Math.min(this.activeIndex, (this.images.length - 1));
-      this.slides.slideTo(index);
+      this.slideTo(this.activeIndex);
     }
+
+    this.events.subscribe('flipbook:slideTo', (index: number) => {
+      this.slideTo(index);
+    });
 
     this.updateComments();
   }
 
   ionViewWillLeave() {
+    this.events.unsubscribe('flipbook:slideTo');
     clearInterval(this.zoomDetectionTimer);
+  }
+
+  showBookmarks(event: Event) {
+    let popover = this.popoverCtrl.create(FlipbookBookmarksPopover, {
+      bookmarks: this.bookmarks
+    });
+
+    popover.present({
+      ev: event
+    });
+  }
+
+  shareImage() {
+    let image = this.images[this.activeIndex];
+    this.sharing.share(this.comments, this.title, image.url);
+  }
+
+  slideTo(index: number){
+    this.slides.slideTo(Math.min(index, (this.images.length - 1)));
   }
 
   isSliderZoomed(): boolean {
