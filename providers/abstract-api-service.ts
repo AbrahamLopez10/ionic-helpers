@@ -218,7 +218,7 @@ export abstract class AbstractAPIService {
           return;
         }
 
-        this.handleSuccess(json, onSuccess);
+        if(onSuccess) this.handleSuccess(json, onSuccess);
       }
       else this.handleError(options, json, onError);
     }).catch((error) => {
