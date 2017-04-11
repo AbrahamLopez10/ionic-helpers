@@ -12,6 +12,10 @@ export class Translator {
 
     }
 
+    getLanguage() {
+        return this.language;
+    }
+
     setLanguage(language: string){
         this.language = language;
         return this;

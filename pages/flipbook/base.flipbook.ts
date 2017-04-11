@@ -85,8 +85,7 @@ export class BaseFlipbookPage {
           this.images.push({
             url: item
           });
-        }
-        else if(typeof item == 'object'){
+        } else if(typeof item == 'object'){
           this.images.push(item as FlipbookImage);
 
           if(item.bookmark){
@@ -97,8 +96,7 @@ export class BaseFlipbookPage {
           }
         }
       }
-    }
-    else throw new Error('The "images" parameter should be passed to the FlipbookPage instance.');
+    } else throw new Error('The "images" parameter should be passed to the FlipbookPage instance.');
     
     this.zoomDetectionTimer = setInterval(() => {
       let isZoomed = this.isSliderZoomed();

@@ -247,7 +247,6 @@ export abstract class AbstractAPIService {
 
       if(!options){
         options = new APIRequestOptions();
-        options.showErrors = false;
       }
 
       this.post('create/' + modelName, params, (response) => {
@@ -283,7 +282,6 @@ export abstract class AbstractAPIService {
 
     if(!options){
       options = new APIRequestOptions();
-      options.showErrors = false;
     }
 
     this.get<T>('read/' + modelName, params, (response, results: T[]) => {
@@ -314,7 +312,6 @@ export abstract class AbstractAPIService {
 
       if(!options){
         options = new APIRequestOptions();
-        options.showErrors = false;
       }
 
       this.post('update/' + modelName, params, (response) => {
@@ -332,7 +329,6 @@ export abstract class AbstractAPIService {
 
       if(!options){
         options = new APIRequestOptions();
-        options.showErrors = false;
       }
       
       this.post('delete/' + modelName, {
@@ -353,7 +349,6 @@ export abstract class AbstractAPIService {
     if(response && response.code){
       console.warn('[AbstractAPIService.onCRUDError] Code: ', response.code, ' / Message: ', error);
       if(onCancel) onCancel();
-      UI.alert(this.alertCtrl, error);
     }
     else if(onError) onError(error, response);
   }
@@ -565,7 +560,7 @@ export abstract class AbstractAPIService {
       error = this.ERROR_GENERIC;
     }
 
-    console.trace('[AbstractAPIService] Error: ', error);
+    console.warn('[AbstractAPIService] Error: ', error);
 
     if(options.showErrors){
       UI.alert(this.alertCtrl, error);

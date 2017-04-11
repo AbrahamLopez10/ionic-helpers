@@ -38,6 +38,9 @@ export var Util = {
 	},
 
 	setLanguage: function(language){
+		if(language == 'spanish') language = 'es';
+		else if(language == 'english') language = 'en';
+		
 		this._language = language;
 	},
 
@@ -543,13 +546,13 @@ export var Util = {
 
 	DateTime: {
 		MONTH_ABREV: {
-			spanish: [ 
+			es: [ 
 				"Ene", "Feb", "Mar", "Abr", 
 				"May", "Jun", "Jul", "Ago", 
 				"Sep", "Oct", "Nov", "Dic" 
 			],
 
-			english: [ 
+			en: [ 
 				"Jan", "Feb", "Mar", "Apr", 
 				"May", "Jun", "Jul", "Aug", 
 				"Sep", "Oct", "Nov", "Dec" 
@@ -557,13 +560,13 @@ export var Util = {
 		},
 
 		MONTH_NAMES: {
-			spanish: [ 
+			es: [ 
 				"Enero", "Febrero", "Marzo", "Abril", 
 				"Mayo", "Junio", "Julio", "Agosto", 
 				"Septiembre", "Octubre", "Noviembre", "Diciembre" 
 			],
 
-			english: [ 
+			en: [ 
 				"January", "February", "March", "April",
 				"May", "June", "July", "August",
 				"September", "October", "November", "December"
@@ -982,6 +985,8 @@ export var Util = {
 	},
 
 	getExcerpt: function(input, maxWords) {
+		if(!input) return '';
+		
 		var words = input.split(' ');
 		var excerpt = words.slice(0, maxWords).join(' ');
 
@@ -1040,6 +1045,7 @@ export var Util = {
 	},
 
 	removeHTML: function(input){
+		if(!input) return '';
 		return input.replace(/<\/?[^>]+>/g, "");
 	},
 
