@@ -49,6 +49,7 @@ export class BaseFlipbookPage {
   public footerVisible: boolean = false;
   public bookmarks: Bookmark[];
   public allowSharing: boolean = false;
+  public lazyLoadOffset: number = 2; // Lazy load this number of slides before and after the current slide
 
   protected navCtrl: NavController;
   protected navParams: NavParams;
@@ -96,7 +97,7 @@ export class BaseFlipbookPage {
           }
         }
       }
-    } else throw new Error('The "images" parameter should be passed to the FlipbookPage instance.');
+    } else throw new Error('[Flipbook] The "images" parameter should be passed to the FlipbookPage instance.');
     
     this.zoomDetectionTimer = setInterval(() => {
       let isZoomed = this.isSliderZoomed();
@@ -118,7 +119,7 @@ export class BaseFlipbookPage {
       this.slideTo(index);
     });
 
-    this.updateComments();
+    this.slideChanged();
   }
 
   ionViewWillLeave() {
@@ -163,11 +164,27 @@ export class BaseFlipbookPage {
       this.slides.lockSwipes(isZoomed);
     }
   }
+
+  lazyLoad() {
+    for(let index = (this.activeIndex - this.lazyLoadOffset); index <= (this.activeIndex + this.lazyLoadOffset); index ++){
+      if(index < 0 || index >= this.images.length - 1) continue;
+
+      let slide: HTMLImageElement = document.getElementById('flipbook_slide_' + index) as HTMLImageElement;
+      let src = slide.dataset.src;
+
+      if(src != ''){
+        console.log('[Flipbook] Preloading index ' + index + ': ' + src);
+        slide.src = src;
+        slide.dataset.src = '';
+      }
+    }
+  }
   
   slideChanged() {
     let index = Math.min(Math.max(0, this.slides.getActiveIndex()), (this.images.length - 1));
     this.activeIndex = index;
     this.updateComments();
+    this.lazyLoad();
   }
 
   slideTapped() {

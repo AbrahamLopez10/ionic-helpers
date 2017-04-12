@@ -18,8 +18,8 @@
 </ion-header>
 
 <ion-slides #flipbook *ngIf="images.length != 0" (ionSlideDrag)="allowSliding()" (ionSlideDidChange)="slideChanged()">
-  <ion-slide *ngFor="let image of images" (click)="slideTapped()">
-    <img src="{{image.url}}" zoom-pan />
+  <ion-slide *ngFor="let image of images; let i = index;" (click)="slideTapped()">
+    <img id="flipbook_slide_{{i}}" [attr.data-src]="image.url" zoom-pan />
   </ion-slide>
 </ion-slides>
 
