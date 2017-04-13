@@ -1,6 +1,11 @@
+import { DomSanitizer } from '@angular/platform-browser';
+import { UI } from './../../libs/ui';
+import { Translator } from './../../providers/translator';
+import { Translate } from './../../providers/translate';
 import { Component } from '@angular/core';
-import { NavController, NavParams, Slides, Events, PopoverController, ViewController } from 'ionic-angular';
+import { NavController, NavParams, Slides, Events, PopoverController, ViewController, ToastController } from 'ionic-angular';
 import { SocialSharing } from "@ionic-native/social-sharing";
+import { PhotoLibrary, LibraryItem } from '@ionic-native/photo-library';
 
 export interface FlipbookImage {
   url: string;
@@ -49,20 +54,39 @@ export class BaseFlipbookPage {
   public footerVisible: boolean = false;
   public bookmarks: Bookmark[];
   public allowSharing: boolean = false;
+  public allowSaving: boolean = false;
+  public showSaveLabel: boolean = true;
+  public saveAlbumName: string = 'App Images';
   public lazyLoadOffset: number = 2; // Lazy load this number of slides before and after the current slide
 
   protected navCtrl: NavController;
   protected navParams: NavParams;
   protected events: Events;
+  protected toastCtrl: ToastController;
   protected popoverCtrl: PopoverController;
+  protected sanitizer: DomSanitizer;
   protected sharing: SocialSharing;
+  protected photoLibrary: PhotoLibrary;
   
+  public tr: Translate;
   protected slides: Slides;
 
   private zoomDetectionTimer;
   private wasZoomed = false;
   private tappingBlocked = false;
 
+  constructor(translator: Translator) {
+    this.tr = new Translate(translator, 'Flipbook');
+
+    this.tr.register('es', [
+      ['The image has been saved to your device\'s photo gallery.', 'La imagen ha sido guardada en la galeria de fotos de su dispositivo.'],
+      ['Sorry, the image could not be saved at this moment.', 'Lo sentimos, la imagen no pudo ser guardada en éste momento.'],
+      ['Sorry, an error ocurred and the image could not be saved.', 'Lo sentimos, ocurrió un error y la imagen no pudo ser guardada.'],
+      ['Sorry, your device didn\t allow permission to save images to your photo gallery.', 'Lo sentimos, su dispositivo no otorgo permiso para guardar imagenes en la galería de fotos.'],
+      ['Save', 'Guardar']
+    ]);
+  }
+  
   init() {
     this.title = this.navParams.get('title') || '';
     this.activeIndex = this.navParams.get('index') || 0;
@@ -72,31 +96,45 @@ export class BaseFlipbookPage {
       this.allowSharing = true;
     }
 
+    if(this.navParams.get('allowSaving')){
+      this.allowSaving = true;
+    }
+
+    if(this.navParams.get('showSaveLabel')){
+      this.showSaveLabel = true;
+    }
+
+    if(this.navParams.get('saveAlbumName')){
+      this.saveAlbumName = this.navParams.get('saveAlbumName');
+    }
+
     if(this.navParams.get('images')){
       let images: FlipbookImage[] = this.navParams.get('images');
 
-      this.images = [];
+      if(images.length != 0){
+        this.images = [];
 
-      let index = -1;
+        let index = -1;
 
-      for(let item of images){
-        index ++;
+        for(let item of images){
+          index ++;
 
-        if(typeof item == 'string'){
-          this.images.push({
-            url: item
-          });
-        } else if(typeof item == 'object'){
-          this.images.push(item as FlipbookImage);
-
-          if(item.bookmark){
-            this.bookmarks.push({
-              name: item.bookmark,
-              index: index
+          if(typeof item == 'string'){
+            this.images.push({
+              url: item
             });
+          } else if(typeof item == 'object'){
+            this.images.push(item as FlipbookImage);
+
+            if(item.bookmark){
+              this.bookmarks.push({
+                name: item.bookmark,
+                index: index
+              });
+            }
           }
         }
-      }
+      } else console.warn('[Flipbook] No images were passed.');
     } else throw new Error('[Flipbook] The "images" parameter should be passed to the FlipbookPage instance.');
     
     this.zoomDetectionTimer = setInterval(() => {
@@ -137,9 +175,37 @@ export class BaseFlipbookPage {
     });
   }
 
+  getCurrentImageURL() {
+    return this.images[this.activeIndex].url;
+  }
+
   shareImage() {
-    let image = this.images[this.activeIndex];
-    this.sharing.share(this.comments, this.title, image.url);
+    this.sharing.share(this.comments, this.title, this.getCurrentImageURL());
+  }
+
+  saveImage() {
+    console.log('[Flipbook.saveImage] Image: ', this.getCurrentImageURL());
+    console.log('[Flipbook.saveImage] Requesting authorization...');
+    
+    this.photoLibrary.requestAuthorization().then(() => {
+      console.log('[Flipbook.saveImage] Authorized. Saving image...');
+      this.photoLibrary.saveImage(this.getCurrentImageURL(), this.saveAlbumName).then((libraryItem: LibraryItem) => {
+        console.log('[Flipbook.saveImage] Success:', libraryItem);
+        UI.toast(this.toastCtrl, this.tr._('The image has been saved to your device\'s photo gallery.'));
+      }, (reason) => {
+        console.warn('[Flipbook.saveImage] Rejected:', reason);
+        UI.toast(this.toastCtrl, this.tr._('Sorry, the image could not be saved at this moment.'));
+      }).catch((error) => {
+        console.error('[Flipbook.saveImage] Error:', error);
+        UI.toast(this.toastCtrl, this.tr._('Sorry, an error ocurred and the image could not be saved.'));
+      });
+    }, (reason) => {
+      console.warn('[Flipbook.saveImage] Authorization denied. Reason:', reason);
+      UI.toast(this.toastCtrl, this.tr._('Sorry, your device didn\t allow permission to save images to your photo gallery.'));
+    }).catch((error) => {
+      console.error('[Flipbook.saveImage] Authorization denied. Error:', error);
+      UI.toast(this.toastCtrl, this.tr._('Sorry, your device didn\t allow permission to save images to your photo gallery.'));
+    });
   }
 
   slideTo(index: number){
@@ -167,7 +233,7 @@ export class BaseFlipbookPage {
 
   lazyLoad() {
     for(let index = (this.activeIndex - this.lazyLoadOffset); index <= (this.activeIndex + this.lazyLoadOffset); index ++){
-      if(index < 0 || index >= this.images.length - 1) continue;
+      if(index < 0 || index > this.images.length - 1) continue;
 
       let slide: HTMLImageElement = document.getElementById('flipbook_slide_' + index) as HTMLImageElement;
       let src = slide.dataset.src;

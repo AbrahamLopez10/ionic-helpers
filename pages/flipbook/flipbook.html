@@ -4,11 +4,15 @@
       <button *ngIf="bookmarks.length != 0" ion-button icon-only (click)="showBookmarks($event)">
         <ion-icon name="bookmarks"></ion-icon>
       </button>
+      <button *ngIf="allowSaving" ion-button icon-only (click)="saveImage()">
+        <ion-icon name="download"></ion-icon>
+        <span *ngIf="showSaveLabel">{{this.tr._('Save')}}</span>
+      </button>
     </ion-buttons>
     <ion-title>{{title}}</ion-title>
     <ion-buttons end>
       <button *ngIf="allowSharing" ion-button icon-only (click)="shareImage()">
-        <ion-icon name="share"></ion-icon>
+        <ion-icon ios="md-share" md="md-share"></ion-icon>
       </button>
       <button ion-button icon-only (click)="goBack()">
         <ion-icon ios="ios-close-circle-outline" md="ios-close-circle-outline"></ion-icon>
@@ -24,5 +28,5 @@
 </ion-slides>
 
 <ion-footer [style.opacity]="footerVisible ? 1 : 0">
-  <p>{{comments}}</p>
+  <div class="comments" [innerHtml]="sanitizer.bypassSecurityTrustHtml(comments)"></div>
 </ion-footer>

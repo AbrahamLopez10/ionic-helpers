@@ -20,6 +20,10 @@ page-flipbook {
         ion-buttons button {
             color: #fff !important;
             font-size: 1.2em !important;
+
+            span {
+                margin-left: 5px;
+            }
         }
     }
     
@@ -27,7 +31,7 @@ page-flipbook {
         background: rgba(0, 0, 0, 0.8) !important;
         color: #fff !important;
 
-        p {
+        div.comments {
             padding: 1em;
         }
     }
