@@ -16,8 +16,12 @@ declare var cordova;
 export class Entity {
   constructor(data?: Object) {
     if(data){
-      for(var key in data){
-        this[key] = data[key];
+      try{
+        for(var key in data){
+          this[key] = data[key];
+        }
+      } catch(e){
+        console.warn(e);
       }
     }
   }

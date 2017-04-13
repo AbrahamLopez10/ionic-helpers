@@ -5,6 +5,8 @@
 @version		1.0
 */
 
+import { Loading, Toast, Alert } from "ionic-angular";
+
 export var UI = {
 	language: 'english',
 	alertController: null,
@@ -78,7 +80,7 @@ export var UI = {
         return this;
 	},
 
-	alert: function(alertCtrl, message, callback?, buttonText?){
+	alert: function(alertCtrl, message, callback?, buttonText?): Alert {
 		message = (message || '').replace(/\n/g, '<br />');
 		
 		var alert = alertCtrl.create({
@@ -94,13 +96,15 @@ export var UI = {
 				if(callback) callback();
 			}, 500);
 		});
+
+		return alert;
 	},
 
-	showAlert: function(alertCtrl, message, callback?, buttonText?){
-		this.alert(alertCtrl, message, callback, buttonText);
+	showAlert: function(alertCtrl, message, callback?, buttonText?): Alert {
+		return this.alert(alertCtrl, message, callback, buttonText);
 	},
 
-	createAlert: function(title, message?, callback?, buttonText?) {
+	createAlert: function(title, message?, callback?, buttonText?): Alert {
 		if(!this.alertController){
 			console.error('Please call UI.initModals(...) before using UI.createAlert()');
 			return;
@@ -134,7 +138,7 @@ export var UI = {
 		return alert;
 	},
 
-	confirm: function(alertCtrl, title, message, yesCallback, noCallback?, options?){
+	confirm: function(alertCtrl, title, message, yesCallback, noCallback?, options?): Alert {
 		message = (message || '').replace(/\n/g, '<br />');
 		
 		if(!options) options = {};
@@ -167,11 +171,11 @@ export var UI = {
 		return confirm;
 	},
 	
-	showConfirm: function(alertCtrl, title, message, yesCallback, noCallback?, options?){
-		this.confirm(alertCtrl, title, message, yesCallback, noCallback, options);
+	showConfirm: function(alertCtrl, title, message, yesCallback, noCallback?, options?): Alert {
+		return this.confirm(alertCtrl, title, message, yesCallback, noCallback, options);
 	},
 
-	createConfirm: function(title, message, yesCallback, noCallback?) {
+	createConfirm: function(title, message, yesCallback, noCallback?): Alert {
 		if(!this.alertController){
 			console.error('Please call UI.initModals(...) before using UI.createConfirm()');
 			return;
@@ -211,7 +215,7 @@ export var UI = {
 		return confirm;
 	},
 	
-	prompt: function(alertController, title, message, onEnter, onCancel?, options?){
+	prompt: function(alertController, title, message, onEnter, onCancel?, options?): Alert {
 		if(!options) options = {};
 
 		var prompt = alertController.create({
@@ -246,9 +250,11 @@ export var UI = {
 		});
 
 		prompt.present();
+
+		return prompt;
 	},
 	
-	toast: function(toastController, message, options?){
+	toast: function(toastController, message, options?): Toast {
 		if(!options) options = {};
 
 		var toast = toastController.create({
@@ -266,11 +272,11 @@ export var UI = {
 		return toast;
 	},
 
-	showToast: function(toastController, message, options?){
-		this.toast(toastController, message, options);
+	showToast: function(toastController, message, options?): Toast {
+		return this.toast(toastController, message, options);
 	},
 
-	createToast: function(message, options?){
+	createToast: function(message, options?): Toast {
 		if(!this.toastController){
 			console.error('Please call UI.initModals(...) before using UI.createToast()');
 			return;
@@ -297,7 +303,7 @@ export var UI = {
 		return toast;
 	},
 
-	loader: function(loadingCtrl, message?, options?){
+	loader: function(loadingCtrl, message?, options?): Loading {
 		if(!message) message = '';
 		
 		message = message.replace(/\n/g, '<br />');
@@ -316,11 +322,11 @@ export var UI = {
 		return loader;
 	},
 
-	showLoader: function(loadingCtrl, message?, options?){
-		this.loader(loadingCtrl, message, options);
+	showLoader: function(loadingCtrl, message?, options?): Loading {
+		return this.loader(loadingCtrl, message, options);
 	},
 
-	createLoader: function(message?, options?){
+	createLoader: function(message?, options?): Loading {
 		if(!this.loaderController){
 			console.error('Please call UI.initModals(...) before using UI.createLoader()');
 			return;
