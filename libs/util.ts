@@ -660,11 +660,11 @@ export var Util = {
 		return JSON.parse(JSON.stringify(obj));
 	},
 
-	getGeoDistance: function(aPoint1, aPoint2){ // Returns the distance (in kilometers) between two geographic points (latitude/longitude pairs)
-		var fLat1 = aPoint1[0];
-		var fLon1 = aPoint1[1];
-		var fLat2 = aPoint2[0];
-		var fLon2 = aPoint2[1];
+	getGeoDistance: function(point1: number[], point2: number[]){ // Returns the distance (in kilometers) between two geographic points (latitude/longitude pairs)
+		var fLat1 = point1[0];
+		var fLon1 = point1[1];
+		var fLat2 = point2[0];
+		var fLon2 = point2[1];
 		
 		var dLat = Util.degreesToRadians(fLat2-fLat1);
 		var dLon = Util.degreesToRadians(fLon2-fLon1); 
@@ -1049,7 +1049,7 @@ export var Util = {
 		return input.replace(/<\/?[^>]+>/g, "");
 	},
 
-	getGeoLocation: function(onSuccess, onError?, config?, hideLoader?, hideError?, onCancel?){
+	getGeoLocation: function(onSuccess: (latitude: number, longitude: number) => void, onError?: Function, config?: any, hideLoader: boolean = false, hideError: boolean = false, onCancel?: Function){
 		var self = this;
 
 		if(!geolocation) geolocation = navigator.geolocation;
@@ -1072,17 +1072,13 @@ export var Util = {
 			if(self._geolocationCancelled) return;
 			if(loader) loader.dismiss(self._geolocationMaskLockId).catch(() => {});
 			console.log('[Util.getGeoLocation] Position: ', position);
-			onSuccess(position.coords);
+			onSuccess(position.coords.latitude, position.coords.longitude);
 		}, function(error){
 			if(self._geolocationCancelled) return;
 			if(loader) loader.dismiss(self._geolocationMaskLockId).catch(() => {});
 
 			if(config.default){
-				onSuccess({
-					latitude: config.default[0],
-					longitude: config.default[1]
-				});
-				
+				onSuccess(config.default[0], config.default[1]);
 				return;
 			}
 
