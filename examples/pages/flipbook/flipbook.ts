@@ -2,7 +2,7 @@
 ====================
 INSTRUCTIONS:
 ====================
-1. Install the Photo Library plugin from Ionic Native if you're going to use the "allowSaving" option (see Usage notes below).
+1. Install the Photo Library plugin from Ionic Native, which is required by the "allowSaving" feature (see Usage below).
    To install run the following command in shell:
 ----
   npm install --save @ionic-native/photo-library && \
@@ -11,9 +11,16 @@ INSTRUCTIONS:
 
 Then import PhotoLibrary in the app.module.ts file and add it the "providers" section there.
 
-2. Import ZoomPanDirective and FlipbookPage in your app.module.ts and add both of them to the "declarations" there.
+2. Install the SocialSharing plugin form Ionic Native, which is required by the "allowSharing" feature (see Usage below):
+----
+  npm install --save @ionic-native/social-sharing
+----
 
-3. Add FlipbookPage to the "entryComponents" of the app.module.ts file.
+Then import SocialSharing in the app.module.ts file and add it the "providers" section there.
+
+3. Import ZoomPanDirective and FlipbookPage in your app.module.ts and add both of them to the "declarations" there.
+
+4. Add FlipbookPage to the "entryComponents" of the app.module.ts file.
 
 ====================
 USAGE:
