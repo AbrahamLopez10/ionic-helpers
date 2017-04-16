@@ -2,21 +2,33 @@
 ====================
 INSTRUCTIONS:
 ====================
-1. Install the Photo Library plugin from Ionic Native, which is required by the "allowSaving" feature (see Usage below).
-   To install run the following command in shell:
+1. Install the SocialSharing plugin from Ionic Native, which is required by the "allowSharing" feature (see Usage below):
 ----
-  npm install --save @ionic-native/photo-library && \
-  ionic plugin add cordova-plugin-photo-library --variable PHOTO_LIBRARY_USAGE_DESCRIPTION="This is required by the app to save images."
+  npm install --save @ionic-native/social-sharing && \
+  ionic plugin add cordova-plugin-x-socialsharing --save
 ----
 
-Then import PhotoLibrary in the app.module.ts file and add it the "providers" section there.
-
-2. Install the SocialSharing plugin form Ionic Native, which is required by the "allowSharing" feature (see Usage below):
+Or if using PhoneGap Build just run "npm install --save @ionic-native/social-sharing" and add the following to your config.xml:
 ----
-  npm install --save @ionic-native/social-sharing
+  <plugin name="cordova-plugin-x-socialsharing" version="5.1.7" source="npm"/>
 ----
 
 Then import SocialSharing in the app.module.ts file and add it the "providers" section there.
+
+2. Install the PhotoLibrary plugin from Ionic Native:
+----
+   npm install --save @ionic-native/photo-library && \
+   ionic plugin add cordova-plugin-photo-library --save --variable PHOTO_LIBRARY_USAGE_DESCRIPTION="This is required by the app to save images."
+----
+
+Or if using PhoneGap Build just run "npm install --save @ionic-native/photo-library" and add the following to your config.xml:
+----
+  <plugin name="cordova-plugin-photo-library" version="2.0.4" source="npm">
+      <variable name="PHOTO_LIBRARY_USAGE_DESCRIPTION" value="This is required by the app to save images." />
+  </plugin>
+----
+
+Then import PhotoLibrary in the app.module.ts file and add it the "providers" section there.
 
 3. Import ZoomPanDirective and FlipbookPage in your app.module.ts and add both of them to the "declarations" there.
 
