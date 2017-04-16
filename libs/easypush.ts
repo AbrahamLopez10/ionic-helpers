@@ -1,7 +1,7 @@
 /*
 @name			EasyPush
-@description	A cross-platform iOS/Android JS library for easing integration of push notifications with a 3rd party provider.
-@requires		Cordova (version CLI-6.3.0 or greater) and phonegap-plugin-push NPM plugin version 1.8.4 or greater
+@description	A cross-platform iOS/Android TypeScript library for easing integration of push notifications with a 3rd party provider.
+@requires		Cordova (version CLI-6.3.0 or greater) and phonegap-plugin-push NPM plugin version 1.10.2 or greater
 @author			Abraham Lopez <abraham.lopez@aplimovil.mx>
 @version		1.0
 */
@@ -114,7 +114,7 @@ export var EasyPush = {
 		return this;
 	},
 
-	listen: function(onNotificationReceived: (message: string, applicationWasActive: boolean, notificationJson: string, pushNotification: any) => void){
+	listen: function(onNotificationReceived: (message: string, applicationWasActive: boolean, notificationData: any, pushNotification: any) => void){
 		this._onNotificationReceived.push(onNotificationReceived);
 		return this;
 	},
