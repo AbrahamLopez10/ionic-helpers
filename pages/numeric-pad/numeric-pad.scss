@@ -1,0 +1,85 @@
+numeric-pad-page {
+    background-color: rgba(51,123,166,0.95) !important;
+
+    ion-content {
+        background-color: transparent !important;
+
+        div[instructions] {
+            padding: 1.5em 1.5em 0 1.5em;
+            font-size: 1em;
+            color: color($colors, light);
+        }
+
+        ion-input {
+            display: block;
+            margin: 1em auto;
+            width: 70vw;
+            border: 1px #999 solid;
+            border-radius: 5px;
+            background-color: color($colors, light);
+
+            input {
+                margin: 0.25em 0.25em 0.25em 0.2em !important;
+                padding: 0 0.25em !important;
+                font-size: 2em;
+                letter-spacing: 0.25em;
+                text-align: center;
+            }
+
+            &.shake {
+                animation: numeric-pad-shake 0.7s linear both;
+            }
+        }
+
+        button[number] {
+            display: block;
+            width: 25vw;
+            height: 20vw;
+            margin: 5px auto !important;
+            font-size: 2em;
+            background-color: color($colors, primary-light);
+            color: color($colors, dark);
+            text-shadow: 1px 1px 1px color($colors, light);
+
+            &.activated {
+                background-color: color($colors, light);
+            }
+        }
+
+        button.enter, button.clear {
+            display: block;
+            width: 100%;
+            height: 20vw;
+            margin: 5px auto;
+            font-weight: bold;
+        }
+
+        button.clear {
+            color: #555;
+        }
+
+        button.cancel {
+            display: block;
+            margin: 1em auto;
+            padding: 1.2em !important;
+        }
+    }
+}
+
+@keyframes numeric-pad-shake {
+    10%, 90% {
+        transform: translate3d(-1px, 0, 0);
+    }
+    
+    20%, 80% {
+        transform: translate3d(2px, 0, 0);
+    }
+
+    30%, 50%, 70% {
+        transform: translate3d(-4px, 0, 0);
+    }
+
+    40%, 60% {
+        transform: translate3d(4px, 0, 0);
+    }
+}
