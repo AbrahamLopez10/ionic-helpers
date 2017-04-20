@@ -13,7 +13,7 @@ Or if using PhoneGap Build just run "npm install --save @ionic-native/social-sha
   <plugin name="cordova-plugin-x-socialsharing" version="5.1.7" source="npm"/>
 ----
 
-Then import SocialSharing in the app.module.ts file and add it the "providers" section there.
+Then import SocialSharing (@ionic-native/social-sharing) in the app.module.ts file and add it the "providers" section there.
 
 2. Install the PhotoLibrary plugin from Ionic Native:
 ----
@@ -28,11 +28,11 @@ Or if using PhoneGap Build just run "npm install --save @ionic-native/photo-libr
   </plugin>
 ----
 
-Then import PhotoLibrary in the app.module.ts file and add it the "providers" section there.
+Then import PhotoLibrary (@ionic-native/photo-library) in the app.module.ts file and add it the "providers" section there.
 
-3. Import ZoomPanDirective and FlipbookPage in your app.module.ts and add both of them to the "declarations" there.
+3. Import ZoomPanDirective, FlipbookPage, and FlipbookBookmarksPopover in your app.module.ts and add all of them to the "declarations" there.
 
-4. Add FlipbookPage to the "entryComponents" of the app.module.ts file.
+4. Add FlipbookPage and FlipbookBookmarksPopover to the "entryComponents" of the app.module.ts file.
 
 ====================
 USAGE:
