@@ -5,11 +5,10 @@
  */
 import { Http, Response, URLSearchParams, Headers, QueryEncoder } from '@angular/http';
 import { LoadingController, AlertController, ToastController } from 'ionic-angular';
-import 'rxjs/add/operator/toPromise';
-
 import { sha1 } from '../libs/sha1';
 import { UI } from '../libs/ui';
 import { Util } from '../libs/util';
+import 'rxjs/add/operator/toPromise';
 
 declare var cordova;
 
@@ -42,8 +41,8 @@ export interface UserInterface {
   username: string;
   name: string;
   token: string;
-  email: string;
-  phone: string;
+  email?: string;
+  phone?: string;
 }
 
 export class APIRequestOptions {
@@ -60,6 +59,12 @@ export class APIRequestOptions {
       }
     }
   }
+}
+
+export class CRUDRequestOptions extends APIRequestOptions {
+  verifyPassword: boolean = true;
+  selfOwner: boolean = false;
+  secureReads: boolean = false;
 }
 
 class CacheResult {
@@ -94,8 +99,7 @@ export abstract class AbstractAPIService {
   protected alertCtrl: AlertController;
   protected loadingCtrl: LoadingController;
   protected toastCtrl: ToastController;
-  protected verifyPassword: boolean = true;
-  protected secureReads: boolean = false;
+  protected secureStorageObject: any;
 
   protected ERROR_GENERIC = 'Sorry, an error ocurred, please try again later.';
   protected ERROR_CONNECTION = 'Sorry, your device is offline. Please check your Internet connection and try again.';
@@ -103,10 +107,13 @@ export abstract class AbstractAPIService {
   protected TITLE_ENTER_PASSWORD = 'Confirm Password';
   protected MESSAGE_ENTER_PASSWORD = 'Please enter your password to proceed:';
   protected MESSAGE_OFFLINE = 'Offline';
+  protected CACHE_STORAGE_KEY = 'AbstractAPIService.Cache';
   protected FAST_CACHE_MAX_AGE = 1; // in minutes
-  protected CLEAR_PASSWORD_AFTER = 15; // in minutes
+  protected SECURE_STORAGE_KEY = 'AbstractAPIService.SecureStorage';
+  protected PASSWORD_STORAGE_EXPIRATION_DAYS = 30;
 
-  private cache: Object = {};
+  private _ready: boolean = false;
+  private _cache: Object = {};
   private _user: UserInterface;
   private _password: string;
   private _appVersion: string;
@@ -124,13 +131,23 @@ export abstract class AbstractAPIService {
   */
 
   constructor() {
-    this.loadCache();
-
     if(window['cordova'] && cordova.getAppVersion){
       cordova.getAppVersion.getVersionNumber((version) => {
         this._appVersion = version;
       });
     }
+
+    setTimeout(() => {
+      if(!this._ready){
+        throw new Error('[AbstractAPIService] this.init() must be called within the APIService implementation');
+      }
+    }, 1000);
+  }
+
+  init() {
+    this._ready = true;
+    this.loadCache();
+    this.loadPassword();
   }
 
   getAppVersion(){
@@ -139,6 +156,22 @@ export abstract class AbstractAPIService {
 
   getEndpointUrl(endpoint: string): string {
     return this.API_URL + endpoint;
+  }
+
+  useSecureStorage(secureStorage) {
+    if(window['cordova']){
+      console.info('[AbstractAPIService.useSecureStorage] Using secure storage.');
+      secureStorage.create(this.getSecureStorageKey()).then((secureStorageObject) => {
+        this.secureStorageObject = secureStorageObject;
+        this.onSecureStorageUsed();
+      });
+    } else {
+      console.info('[AbstractAPIService.useSecureStorage] Using local storage as Cordova is not available.');
+    }
+  }
+
+  onSecureStorageUsed() {
+    this.loadPassword();
   }
 
   get<T>(endpoint: string, params: Object, onSuccess: (response: any, results?: T[]) => void, onError?: (error: string, response?: any) => void, options?: APIRequestOptions, headers: Object = {}): void {
@@ -231,8 +264,8 @@ export abstract class AbstractAPIService {
     });
   }
 
-  create<T>(modelName: string, data: Object, onSuccess: (entity?: T) => void, onError?: (error: string, response: any) => void, onCancel?: Function, excludedFields: string[] = ['id'], options?: APIRequestOptions) {
-    this.checkPassword(() => {
+  create<T>(modelName: string, data: Object, onSuccess: (entity?: T) => void, onError?: (error: string, response: any) => void, onCancel?: Function, excludedFields: string[] = ['id'], options?: CRUDRequestOptions) {
+    let doCreate = () => {
       let user = this.getInternalUser();
 
       let params = {
@@ -250,7 +283,7 @@ export abstract class AbstractAPIService {
       }
 
       if(!options){
-        options = new APIRequestOptions();
+        options = new CRUDRequestOptions();
       }
 
       this.post('create/' + modelName, params, (response) => {
@@ -259,14 +292,28 @@ export abstract class AbstractAPIService {
       }, (error, response) => {
         this.onCRUDError(onError, onCancel, error, response);
       }, options);
-    }, onCancel);
+    };
+
+    if(options.verifyPassword && !options.selfOwner){
+      this.checkPassword(() => {
+        doCreate();
+      }, onCancel);
+    } else {
+      doCreate();
+    }
   }
 
-  read<T>(modelName: string, additionalParams: Object, onSuccess: (results: T[]) => void, onError?: (error: string, response?: any) => void, onCancel?: Function, options?: APIRequestOptions) {
-    if(this.secureReads && !this._password){
+  register<T>(modelName: string, data: Object, onSuccess: (entity?: T) => void, onError?: (error: string, response: any) => void, onCancel?: Function, excludedFields: string[] = ['id'], options?: CRUDRequestOptions) {
+    if(!options) options = new CRUDRequestOptions();
+    options.selfOwner = true;
+    this.create<T>(modelName, data, onSuccess, onError, onCancel, excludedFields, options);
+  }
+
+  read<T>(modelName: string, additionalParams: Object, onSuccess: (results: T[]) => void, onError?: (error: string, response?: any) => void, onCancel?: Function, options?: CRUDRequestOptions) {
+    if(options && options.secureReads && !this._password){
       this.checkPassword(() => {
         this.read<T>(modelName, additionalParams, onSuccess, onError, null, options);
-      }, onCancel);
+      }, onCancel, options);
 
       return;
     }
@@ -285,7 +332,7 @@ export abstract class AbstractAPIService {
     }
 
     if(!options){
-      options = new APIRequestOptions();
+      options = new CRUDRequestOptions();
     }
 
     this.get<T>('read/' + modelName, params, (response, results: T[]) => {
@@ -295,7 +342,7 @@ export abstract class AbstractAPIService {
     }, options);
   }
 
-  update<T>(modelName: string, entityId: any, data: Object, onSuccess: (entity?: T) => void, onError?: (error: string, response: any) => void, onCancel?: Function, excludedFields: string[] = ['id'], options?: APIRequestOptions) {
+  update<T>(modelName: string, entityId: any, data: Object, onSuccess: (entity?: T) => void, onError?: (error: string, response: any) => void, onCancel?: Function, excludedFields: string[] = ['id'], options?: CRUDRequestOptions) {
     this.checkPassword(() => {
       let user = this.getInternalUser();
 
@@ -315,7 +362,7 @@ export abstract class AbstractAPIService {
       }
 
       if(!options){
-        options = new APIRequestOptions();
+        options = new CRUDRequestOptions();
       }
 
       this.post('update/' + modelName, params, (response) => {
@@ -324,15 +371,15 @@ export abstract class AbstractAPIService {
       }, (error, response) => {
         this.onCRUDError(onError, onCancel, error, response);
       }, options);
-    }, onCancel);
+    }, onCancel, options);
   }
 
-  delete(modelName: string, entityId: any, onSuccess: Function, onError?: (error: string, response: any) => void, onCancel?: Function, options?: APIRequestOptions) {
+  delete(modelName: string, entityId: any, onSuccess: Function, onError?: (error: string, response: any) => void, onCancel?: Function, options?: CRUDRequestOptions) {
     this.checkPassword(() => {
       let user = this.getInternalUser();
 
       if(!options){
-        options = new APIRequestOptions();
+        options = new CRUDRequestOptions();
       }
       
       this.post('delete/' + modelName, {
@@ -346,7 +393,7 @@ export abstract class AbstractAPIService {
       }, (error, response) => {
         this.onCRUDError(onError, onCancel, error, response);
       }, options);
-    }, onCancel);
+    }, onCancel, options);
   }
 
   protected onCRUDError(onError: (error: string, response?: any) => void, onCancel: Function, error: string, response: any) {
@@ -367,20 +414,63 @@ export abstract class AbstractAPIService {
     }, onError, options);
   }
 
-  cachePassword(password: string) {
-    this._password = password;
-
-    setTimeout(() => {
-      this._password = null;
-    }, (this.CLEAR_PASSWORD_AFTER * 60 * 1000));
-  }
-
   getPassword() {
     return this._password;
   }
 
   clearPassword() {
     this._password = null;
+  }
+
+  protected getSecureStorageKey(suffix = '') {
+    // Append partial hash of API URL to cache key to make it unique among the same host (mainly for development purposes using localhost)
+    return this.SECURE_STORAGE_KEY + '.' + sha1(this.API_URL).substr(0, 15) + suffix;
+  }
+
+  private loadPassword() {
+    if(this.secureStorageObject){
+      this.secureStorageObject.get('password').then((jsonData) => {
+        console.log('[AbstractAPIService.loadPassword] Password successfully retrieved.');
+        this.parsePasswordStorageContents(jsonData);
+      }, (error) => {
+        console.error('[AbstractAPIService.loadPassword] Could not load password from secure storage: ', error);
+      });
+    } else {
+      this.parsePasswordStorageContents(localStorage.getItem(this.getSecureStorageKey('-password')));
+    }
+  }
+
+  public savePassword(password: string) {
+    this._password = password;
+
+    if(this.secureStorageObject){
+      this.secureStorageObject.set('password', this.getPasswordStorageContents()).then(() => {
+        console.log('[AbstractAPIService.savePassword] Password successfully saved.');
+      }, (error) => {
+        console.error('[AbstractAPIService.savePassword] Could not save password into secure storage: ', error);
+      });
+    } else {
+      localStorage.setItem(this.getSecureStorageKey('-password'), this.getPasswordStorageContents());
+    }
+  }
+
+  private parsePasswordStorageContents(jsonData: string) {
+    let data = Util.parseJSON(jsonData);
+
+    if(data){
+      if(data.expiration && data.expiration > Util.getTimestamp()){
+        this._password = data.password;
+      }
+    }
+  }
+
+  private getPasswordStorageContents() {
+    let expiration = Util.getTimestamp() + (this.PASSWORD_STORAGE_EXPIRATION_DAYS * (3600 * 24));
+    let data = {
+      password: this._password,
+      expiration: expiration
+    };
+    return JSON.stringify(data);
   }
 
   promptPassword(callback: (password: string) => void) {
@@ -393,14 +483,14 @@ export abstract class AbstractAPIService {
     });
   }
 
-  checkPassword(callback: (password?: string) => void, cancelPromptCallback?: Function) {
-    if(this._password || !this.verifyPassword){
+  checkPassword(callback: (password?: string) => void, cancelPromptCallback?: Function, options?: CRUDRequestOptions) {
+    if(this._password || (options && (!options.verifyPassword || options.selfOwner))){
       callback(this._password);
     }
     else{
       this.promptPassword((password) => {
         if(password != null){
-          this.cachePassword(password);
+          this.savePassword(password);
           callback(password);
         }
         else if(cancelPromptCallback) cancelPromptCallback();
@@ -412,12 +502,12 @@ export abstract class AbstractAPIService {
     if(endpoint){
       let endpointHash: string = sha1(endpoint);
 
-      if(this.cache[endpointHash]){
-        delete this.cache[endpointHash];
+      if(this._cache[endpointHash]){
+        delete this._cache[endpointHash];
       }
     }
     else{
-      this.cache = {};
+      this._cache = {};
     }
 
     this.saveCache();
@@ -470,17 +560,22 @@ export abstract class AbstractAPIService {
   }
 
   private loadCache() {
-    this.cache = Util.retrieve('AbstractAPIService.Cache') || {};
+    this._cache = Util.retrieve(this.getCacheStorageKey()) || {};
   }
 
   private saveCache() {
-    Util.store('AbstractAPIService.Cache', this.cache);
+    Util.store(this.getCacheStorageKey(), this._cache);
+  }
+
+  private getCacheStorageKey() {
+    // Append partial hash of API URL to cache key to make it unique among the same host (mainly for development purposes using localhost)
+    return this.CACHE_STORAGE_KEY + '.' + sha1(this.API_URL).substr(0, 15);
   }
 
   private getCacheResult(endpoint: string, params: Object): CacheResult {
     let endpointHash: string = sha1(endpoint);
     let cacheId = this.getParamsHash(params);
-    let endpointCache: Object = this.cache[endpointHash];
+    let endpointCache: Object = this._cache[endpointHash];
     let result: CacheResult = endpointCache ? endpointCache[cacheId] : null;
     return result || null;
   }
@@ -493,8 +588,8 @@ export abstract class AbstractAPIService {
   private saveResultInCache(endpoint: string, params: Object, result: any) {
     let endpointHash: string = sha1(endpoint);
     let cacheId = this.getParamsHash(params);
-    if(!this.cache[endpointHash]) this.cache[endpointHash] = {};
-    this.cache[endpointHash][cacheId] = new CacheResult(result);
+    if(!this._cache[endpointHash]) this._cache[endpointHash] = {};
+    this._cache[endpointHash][cacheId] = new CacheResult(result);
     this.saveCache();
   }
 

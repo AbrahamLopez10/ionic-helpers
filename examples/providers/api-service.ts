@@ -1,9 +1,24 @@
 /*
+=== OPTIONAL ===
+To enable the secure storing of the user's password in CRUD calls, do the following:
+
+1. Install the SecureStorage plugin from Ionic Native:
+----
+  ionic plugin add cordova-plugin-secure-storage && npm install --save @ionic-native/secure-storage
+----
+
+2. Import SecureStorage (@ionic-native/secure-storage) in app.module.ts and add SecureStorage to the "providers" section.
+
+3. Uncomment the import (~ line 16) and dependency injection (~ line 59) below for SecureStorage
+as well as the "this.useSecureStorage(secureStorage)" call (~ line 68).
+*/
+/*
 import { AlertController, LoadingController, ToastController } from 'ionic-angular';
 import { AbstractAPIService, Entity, UserInterface } from '../ionic2-helpers/providers/abstract-api-service';
 import { Injectable } from '@angular/core';
 import { Http } from '@angular/http';
 import { Util } from '../ionic2-helpers/libs/util';
+//import { SecureStorage } from '@ionic-native/secure-storage';
 
 export class User extends Entity implements UserInterface {
   public id: number;
@@ -42,15 +57,18 @@ export class APIService extends AbstractAPIService {
 
   protected user: User;
 
-  private USER_STORAGE_ID = 'APIService.User';
+  private USER_STORAGE_ID = 'APP_NAME.APIService.User';
 
   constructor(
     protected http: Http,
+    //protected secureStorage: SecureStorage,
     protected alertCtrl: AlertController,
     protected loadingCtrl: LoadingController,
     protected toastCtrl: ToastController
   ){
     super();
+
+    //this.useSecureStorage();
 
     let userData = Util.retrieve(this.USER_STORAGE_ID);
 

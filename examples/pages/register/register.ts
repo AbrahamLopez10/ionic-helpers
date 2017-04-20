@@ -41,6 +41,7 @@ export class RegisterPage {
 
       this.api.register(registration, (user: User) => {
         this.api.setUser(user);
+        this.api.savePassword(this.password);
         this.navCtrl.setRoot(HomePage);
       });
     }

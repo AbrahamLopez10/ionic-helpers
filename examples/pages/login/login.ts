@@ -33,7 +33,7 @@ export class LoginPage {
     if(this.username && this.password){
       this.api.login<User>('appuser', this.username, this.password, (user) => {
         this.api.setUser(user);
-        this.api.cachePassword(this.password);
+        this.api.savePassword(this.password);
         this.navCtrl.setRoot(HomePage);
       });
     }
