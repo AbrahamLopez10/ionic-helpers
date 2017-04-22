@@ -265,6 +265,10 @@ export abstract class AbstractAPIService {
   }
 
   create<T>(modelName: string, data: Object, onSuccess: (entity?: T) => void, onError?: (error: string, response: any) => void, onCancel?: Function, excludedFields: string[] = ['id'], options?: CRUDRequestOptions) {
+    if(!options){
+      options = new CRUDRequestOptions();
+    }
+
     let doCreate = () => {
       let user = this.getInternalUser();
 
@@ -280,10 +284,6 @@ export abstract class AbstractAPIService {
         if(value !== null && excludedFields.indexOf(key) == -1 && (/string|number|boolean/).test(typeof value)){
           params[key] = value;
         }
-      }
-
-      if(!options){
-        options = new CRUDRequestOptions();
       }
 
       this.post('create/' + modelName, params, (response) => {
@@ -430,10 +430,11 @@ export abstract class AbstractAPIService {
   private loadPassword() {
     if(this.secureStorageObject){
       this.secureStorageObject.get('password').then((jsonData) => {
-        console.log('[AbstractAPIService.loadPassword] Password successfully retrieved.');
-        this.parsePasswordStorageContents(jsonData);
+        if(this.parsePasswordStorageContents(jsonData)){
+          console.log('[AbstractAPIService.loadPassword] Password successfully retrieved.');
+        }
       }, (error) => {
-        console.error('[AbstractAPIService.loadPassword] Could not load password from secure storage: ', error);
+        console.warn('[AbstractAPIService.loadPassword] Could not load password from secure storage: ', error);
       });
     } else {
       this.parsePasswordStorageContents(localStorage.getItem(this.getSecureStorageKey('-password')));
@@ -443,25 +444,33 @@ export abstract class AbstractAPIService {
   public savePassword(password: string) {
     this._password = password;
 
+    console.log('[AbstractAPIService.savePassword] Saving password...');
+
     if(this.secureStorageObject){
       this.secureStorageObject.set('password', this.getPasswordStorageContents()).then(() => {
-        console.log('[AbstractAPIService.savePassword] Password successfully saved.');
+        console.info('[AbstractAPIService.savePassword] Password successfully saved using secure storage.');
       }, (error) => {
         console.error('[AbstractAPIService.savePassword] Could not save password into secure storage: ', error);
       });
     } else {
+      console.info('[AbstractAPIService.savePassword] Password successfully saved using local storage.');
       localStorage.setItem(this.getSecureStorageKey('-password'), this.getPasswordStorageContents());
     }
   }
 
   private parsePasswordStorageContents(jsonData: string) {
-    let data = Util.parseJSON(jsonData);
+    if(jsonData){
+      let data = Util.parseJSON(jsonData);
 
-    if(data){
-      if(data.expiration && data.expiration > Util.getTimestamp()){
-        this._password = data.password;
-      }
-    }
+      if(data){
+        if(data.expiration && data.expiration > Util.getTimestamp()){
+          this._password = data.password;
+          return true;
+        } else console.info('[AbstractAPIService.parsePasswordStorageContents] Password has expired.');
+      } else console.warn('[AbstractAPIService.parsePasswordStorageContents] Invalid JSON data: ', jsonData);
+    } else console.log('[AbstractAPIService.parsePasswordStorageContents] Data is empty.');
+
+    return false;
   }
 
   private getPasswordStorageContents() {
