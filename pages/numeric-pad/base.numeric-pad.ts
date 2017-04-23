@@ -8,7 +8,6 @@ declare var jQuery;
 
 export class BaseNumericPadPage {
     public value: string = '';
-    public displayValue: string = '';
     public tr: Translate;
 
     private mask: boolean = false;
@@ -17,7 +16,8 @@ export class BaseNumericPadPage {
     private required: boolean = false;
     private requiredMessage: string;
     private callback: (value: string) => boolean;
-
+    private canLeave: boolean = false;
+    
     public instructions: string;
     public disableCancel: boolean = false;
     public enterDisabled: boolean = false;
@@ -87,7 +87,7 @@ export class BaseNumericPadPage {
             this.enterDisabled = false;
         });
 
-        this.events.subscribe('numeric-pad:shake-input', () => {
+        this.events.subscribe('numeric-pad:shake', () => {
             this.shakeInput();
         });
 
@@ -95,11 +95,17 @@ export class BaseNumericPadPage {
             this.clear();
         });
     }
+    
+    ionViewCanLeave() {
+        if(!this.canLeave){
+            return this.enter();
+        }
+    }
 
     ionViewWillLeave() {
         this.events.unsubscribe('numeric-pad:disable-enter');
         this.events.unsubscribe('numeric-pad:enable-enter');
-        this.events.unsubscribe('numeric-pad:shake-input');
+        this.events.unsubscribe('numeric-pad:shake');
         this.events.unsubscribe('numeric-pad:clear');
     }
 
@@ -112,31 +118,45 @@ export class BaseNumericPadPage {
         this.value += num;
         
         if(this.mask){
-            this.displayValue = "*".repeat(this.value.length);
+            this.displayValue("*".repeat(this.value.length));
         } else if(this.partialMask){
-            this.displayValue = "*".repeat(this.value.length - 1) + this.value.substr(-1, 1);
+            this.displayValue("*".repeat(this.value.length - 1) + this.value.substr(-1, 1));
         } else {
-            this.displayValue = this.value;
+            this.displayValue(this.value);
         }
     }
 
-    enter() {
+    displayValue(value: string) {
+        jQuery('#numeric-pad-display input').val(value);
+    }
+
+    enter(): boolean {
         if(this.required){
             if(this.value != ''){
                 if(this.callback(this.value) !== false){
-                    this.viewCtrl.dismiss();
+                    this.dismiss();
                 }
             } else {
                 this.shakeInput();
                 UI.toast(this.toastCtrl, this.tr._(this.requiredMessage), {duration: 3000});
+                return false;
             }
         } else {
-            if(this.value == '' && this.disableCancel) return;
+            if(this.value == '' && this.disableCancel){
+                return false;
+            }
             
             if(this.callback(this.value) !== false){
-                this.viewCtrl.dismiss();
+                this.dismiss();
             }
         }
+
+        return true;
+    }
+
+    dismiss() {
+        this.canLeave = true;
+        this.viewCtrl.dismiss();
     }
 
     shakeInput() {
@@ -151,7 +171,7 @@ export class BaseNumericPadPage {
 
     clear() {
         this.value = '';
-        this.displayValue = '';
+        this.displayValue('');
     }
 
     cancel() {
