@@ -278,6 +278,12 @@ export abstract class AbstractAPIService {
         _OWNER_PASSWORD: (this._password || ''),
       };
 
+      if(options.selfOwner){
+        params._OWNER_ID = 'SELF';
+        params._OWNER_TOKEN = 'SELF';
+        params._OWNER_PASSWORD = '';
+      }
+
       for(let key in data){
         let value = data[key];
 
@@ -418,10 +424,6 @@ export abstract class AbstractAPIService {
     return this._password;
   }
 
-  clearPassword() {
-    this._password = null;
-  }
-
   protected getSecureStorageKey(suffix = '') {
     // Append partial hash of API URL to cache key to make it unique among the same host (mainly for development purposes using localhost)
     return this.SECURE_STORAGE_KEY + '.' + sha1(this.API_URL).substr(0, 15) + suffix;
@@ -441,7 +443,7 @@ export abstract class AbstractAPIService {
     }
   }
 
-  public savePassword(password: string) {
+  savePassword(password: string) {
     this._password = password;
 
     console.log('[AbstractAPIService.savePassword] Saving password...');
@@ -456,6 +458,10 @@ export abstract class AbstractAPIService {
       console.info('[AbstractAPIService.savePassword] Password successfully saved using local storage.');
       localStorage.setItem(this.getSecureStorageKey('-password'), this.getPasswordStorageContents());
     }
+  }
+
+  clearPassword() {
+    this.savePassword('');
   }
 
   private parsePasswordStorageContents(jsonData: string) {

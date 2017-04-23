@@ -88,6 +88,7 @@ export class APIService extends AbstractAPIService {
   logout() {
     this.user = null;
     Util.store(this.USER_STORAGE_ID, null);
+    this.clearPassword();
   }
 
   isLoggedIn() {
@@ -116,6 +117,8 @@ export class APIService extends AbstractAPIService {
     for(var key in data){
       this.user[key] = data[key];
     }
+
+    this.setInternalUser(this.user);
   }
 }
 */
