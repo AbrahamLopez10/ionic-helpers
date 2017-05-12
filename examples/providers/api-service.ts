@@ -67,6 +67,7 @@ export class APIService extends AbstractAPIService {
     protected toastCtrl: ToastController
   ){
     super();
+    this.init();
 
     //this.useSecureStorage();
 
