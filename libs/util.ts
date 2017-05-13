@@ -912,8 +912,15 @@ export var Util = {
 	},
 
 	store: function(key, object){
-		var data = JSON.stringify(object);
-		localStorage.setItem(key, data);
+		let data = JSON.stringify(object);
+
+		try{
+			localStorage.setItem(key, data);
+			return true;
+		} catch(e){
+			console.error(e);
+			return false;
+		}
 	},
 
 	retrieve: function(key){
