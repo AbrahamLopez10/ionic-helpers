@@ -251,7 +251,7 @@ export abstract class AbstractAPIService {
       let json = response.json();
 
       if(json){
-        if(json.status !== undefined && (json.status == 0 || json.status == 'error')){
+        if(json.error || (json.status !== undefined && (json.status === 0 || json.status === 'error'))){
           this.handleError(options, json, onError);
           return;
         }
@@ -580,7 +580,11 @@ export abstract class AbstractAPIService {
   }
 
   private saveCache() {
-    Util.store(this.getCacheStorageKey(), this._cache);
+    let saved = Util.store(this.getCacheStorageKey(), this._cache);
+    if(!saved){
+      // If cache size exceeds localStorage limit then clear the cache
+      localStorage.setItem(this.getCacheStorageKey(), '');
+    }
   }
 
   private getCacheStorageKey() {
@@ -655,7 +659,7 @@ export abstract class AbstractAPIService {
         console.error('[AbstractAPIService.handleError] ', e);
       }
     }
-    else if(response){
+    else if(typeof response == 'object'){
       if(response.code && response.code == 'passwordIncorrect'){
         this.clearPassword();
       }
