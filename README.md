@@ -1,7 +1,8 @@
 # ionic-helpers
-Premade Helpers (components, directives, providers, and pages) for Developing Ionic v3+ Applications
+Premade Helpers (components, directives, providers, and pages) for Developing Ionic v2+ Applications
+Author: Abraham Lopez <ablopez824@gmail.com>
 
-To install just clone this repository as a submodule (using "git submodule add [REPO_URL]") inside the src/ folder of your Ionic 2 application so you can keep track of updates, or just download the repo and copy it to the src/ folder of your project if you prefer to check for updates manually.
+To install just clone or fork this repository as a submodule (using "git submodule add [REPO_URL]") inside the src/ folder of your Ionic application so you can easily keep track of updates, or just download the repo and copy it to the src/ folder of your project if you prefer to check for updates manually.
 
 All helpers are customizable through class extension as well as through template overriding (using the @Component decorator) in the case of components and pages.
 
