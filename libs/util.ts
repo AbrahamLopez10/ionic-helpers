@@ -545,20 +545,6 @@ export var Util = {
 	},
 
 	DateTime: {
-		MONTH_ABREV: {
-			es: [ 
-				"Ene", "Feb", "Mar", "Abr", 
-				"May", "Jun", "Jul", "Ago", 
-				"Sep", "Oct", "Nov", "Dic" 
-			],
-
-			en: [ 
-				"Jan", "Feb", "Mar", "Apr", 
-				"May", "Jun", "Jul", "Aug", 
-				"Sep", "Oct", "Nov", "Dec" 
-			]
-		},
-
 		MONTH_NAMES: {
 			es: [ 
 				"Enero", "Febrero", "Marzo", "Abril", 
@@ -573,32 +559,60 @@ export var Util = {
 			]
 		},
 
+		MONTH_NAMES_SHORT: {
+			es: [ 
+				"Ene", "Feb", "Mar", "Abr", 
+				"May", "Jun", "Jul", "Ago", 
+				"Sep", "Oct", "Nov", "Dic" 
+			],
+
+			en: [ 
+				"Jan", "Feb", "Mar", "Apr", 
+				"May", "Jun", "Jul", "Aug", 
+				"Sep", "Oct", "Nov", "Dec" 
+			]
+		},
+
+		WEEK_DAY_NAMES: {
+			spanish: ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"],
+			english: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+		},
+
 		clone: function(d) {
 			var copy = new Date();
 	        copy.setTime(d.getTime());
 	        return copy;
 		},
 
-		getMonthAbrev: function(d) {
-			return Util.DateTime.MONTH_ABREV[Util._language][d.getMonth()];
-		},
-
 		getMonthName: function(d) {
 			return Util.DateTime.MONTH_NAMES[Util._language][d.getMonth()];
 		},
 
-		getFriendlyDate: function(d, shortDate?){
-			if(!d) return "";
-			if(!(d instanceof Date)) d = Util.DateTime.fromISO(d);
-			var monthName = shortDate ? Util.DateTime.getMonthAbrev(d) : Util.DateTime.getMonthName(d);
-			return d ? monthName + " " + d.getDate() + ", " + d.getFullYear() : "";
+		getShortMonthName: function(d) {
+			return Util.DateTime.MONTH_NAMES_SHORT[Util._language][d.getMonth()];
+		},
+
+		getFriendlyDate: function(date: any, shortDate?: boolean, includeWeekDay?: boolean){
+			if(!date) return "";
+			if(!(date instanceof Date)) date = Util.DateTime.fromISO(date);
+			if(date){
+				var monthName = shortDate ? Util.DateTime.getShortMonthName(date) : Util.DateTime.getMonthName(date);
+				var friendlyDate = monthName + " " + date.getDate() + ", " + date.getFullYear();
+				if(includeWeekDay){
+					var weekDayName = Util.DateTime.WEEK_DAY_NAMES[Util._language][date.getDay()];
+					if(shortDate) weekDayName = weekDayName.substr(0, 3);
+					friendlyDate = weekDayName + ", " + friendlyDate;
+				}
+				return friendlyDate;
+			}
+			else return "";
 		},
 		
-		getFriendlyTime: function(d) {
-			if(!d) return "";
-			if(!(d instanceof Date)) d = Util.DateTime.fromISO(d);
+		getFriendlyTime: function(date: any) {
+			if(!date) return "";
+			if(!(date instanceof Date)) date = Util.DateTime.fromISO(date);
 
-			var curr_hour = d.getHours();
+			var curr_hour = date.getHours();
 			var meridian = (curr_hour < 12) ? "AM" : "PM";
 
 			if (curr_hour == 0)
@@ -607,14 +621,14 @@ export var Util = {
 			if (curr_hour > 12)
 			   curr_hour = curr_hour - 12;
 
-			var curr_min = d.getMinutes();
+			var curr_min = date.getMinutes();
 			return (Util.DateTime.twoDigits(curr_hour) + ":" + Util.DateTime.twoDigits(curr_min) + " " + meridian);
 		},
 
-		getFriendlyDateTime: function(d){
-			if(!d) return "";
-			if(!(d instanceof Date)) d = Util.DateTime.fromISO(d);
-			return d ? Util.DateTime.getFriendlyDate(d) + " " + Util.DateTime.getFriendlyTime(d) : "";
+		getFriendlyDateTime: function(date: any, shortDate?: boolean, includeWeekDay?: boolean){
+			if(!date) return "";
+			if(!(date instanceof Date)) date = Util.DateTime.fromISO(date);
+			return date ? Util.DateTime.getFriendlyDate(date, shortDate, includeWeekDay) + " " + Util.DateTime.getFriendlyTime(date) : "";
 		},
 
 		fromISO: function(datetime) {
