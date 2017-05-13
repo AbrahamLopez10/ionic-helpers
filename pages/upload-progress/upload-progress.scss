@@ -1,0 +1,26 @@
+page-upload-progress {
+    p {
+        margin: 1em 0;
+        font-size: 0.9em;
+        font-weight: bold;
+        color: #555;
+        text-align: center;
+    }
+
+    button[color=danger] {
+        display: block;
+        width: 100px;
+        margin: 1em auto;
+    }
+}
+
+.upload-progress-popover {
+    .popover-content {
+        width: 300px;
+        height: 150px;
+        position: absolute;
+        left: 50% !important;
+        top: 50% !important;
+        transform: translate(-50%, -50%) !important;
+    }
+}
