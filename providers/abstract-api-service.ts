@@ -1,8 +1,9 @@
 /**
- * @name      AbstractAPIService
- * @version   1.1
- * @author    Abraham Lopez <ab@aplimovil.mx>
+ * @name          AbstractAPIService
+ * @description   Base class for an API service provider in Ionic v3+ applications, using a GET/POST based, CRUD-oriented custom ruleset for an HTTP JSON API (TODO: pending documentation for custom ruleset)
+ * @author        Abraham Lopez <ablopez824@gmail.com>
  */
+
 import { Http, Response, URLSearchParams, Headers, QueryEncoder } from '@angular/http';
 import { LoadingController, AlertController, ToastController } from 'ionic-angular';
 import { sha1 } from '../libs/sha1';

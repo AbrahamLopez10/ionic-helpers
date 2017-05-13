@@ -1,9 +1,8 @@
-/*
-@name			EasyPush
-@description	A cross-platform iOS/Android TypeScript library for easing integration of push notifications with a 3rd party provider.
-@requires		Cordova (version CLI-6.3.0 or greater) and phonegap-plugin-push NPM plugin version 1.10.2 or greater
-@author			Abraham Lopez <abraham.lopez@aplimovil.mx>
-@version		1.0
+/**
+ * @name			EasyPush
+ * @description		A cross-platform iOS/Android TypeScript library for easing integration of push notifications with a 3rd party provider.
+ * @requires		Cordova (version CLI-6.3.0 or greater) and phonegap-plugin-push NPM plugin version 1.10.2 or greater
+ * @author			Abraham Lopez <ablopez824@gmail.com>
 */
 
 import { Util } from './util';

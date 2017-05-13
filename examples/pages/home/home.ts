@@ -1,5 +1,5 @@
 /*
-import { UI } from '../../ionic2-helpers/libs/ui';
+import { UI } from '../../ionic-helpers/libs/ui';
 import { APIService, User } from '../../providers/api-service';
 import { LoginPage } from '../login/login';
 import { Component } from '@angular/core';

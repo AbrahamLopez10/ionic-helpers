@@ -1,6 +1,6 @@
 /*
-import { Util } from '../../ionic2-helpers/libs/util';
-import { UI } from '../../ionic2-helpers/libs/ui';
+import { Util } from '../../ionic-helpers/libs/util';
+import { UI } from '../../ionic-helpers/libs/ui';
 import { APIService, UserRegistration, User } from './../../providers/api-service';
 import { LoginPage } from './../login/login';
 import { HomePage } from './../home/home';

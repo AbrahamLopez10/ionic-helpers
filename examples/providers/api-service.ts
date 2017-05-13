@@ -14,10 +14,10 @@ as well as the "this.useSecureStorage(secureStorage)" call (~ line 68).
 */
 /*
 import { AlertController, LoadingController, ToastController } from 'ionic-angular';
-import { AbstractAPIService, Entity, UserInterface } from '../ionic2-helpers/providers/abstract-api-service';
+import { AbstractAPIService, Entity, UserInterface } from '../ionic-helpers/providers/abstract-api-service';
 import { Injectable } from '@angular/core';
 import { Http } from '@angular/http';
-import { Util } from '../ionic2-helpers/libs/util';
+import { Util } from '../ionic-helpers/libs/util';
 //import { SecureStorage } from '@ionic-native/secure-storage';
 
 export class User extends Entity implements UserInterface {

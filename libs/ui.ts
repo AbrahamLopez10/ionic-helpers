@@ -1,8 +1,7 @@
 /*
 @name			Util
-@description	UI helper functions for Ionic 2
-@author			Abraham Lopez <abraham.lopez@aplimovil.mx>
-@version		1.0
+@description	UI helper functions for Ionic apps
+@author			Abraham Lopez <ablopez824@gmail.com>
 */
 
 import { Loading, Toast, Alert } from "ionic-angular";

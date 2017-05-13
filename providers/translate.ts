@@ -1,3 +1,9 @@
+/**
+ * @name            Translate
+ * @description     An easy helper class for easy internationalization of strings in Ionic v2+ apps
+ * @author          Abraham Lopez <ablopez824@gmail.com>
+ */
+
 import { Translator } from './translator';
 
 export type Translation = Array<string[]>;

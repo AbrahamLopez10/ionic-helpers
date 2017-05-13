@@ -1,13 +1,13 @@
 /*
-import { Translator } from './../../ionic2-helpers/providers/translator';
+import { Translator } from './../../ionic-helpers/providers/translator';
 import { DomSanitizer } from '@angular/platform-browser';
 import { NavController, NavParams, ViewController, AlertController, ToastController, Events } from 'ionic-angular';
-import { BaseNumericPadPage } from './../../ionic2-helpers/pages/numeric-pad/base.numeric-pad';
+import { BaseNumericPadPage } from './../../ionic-helpers/pages/numeric-pad/base.numeric-pad';
 import { Component } from '@angular/core';
 
 @Component({
     selector: 'numeric-pad-page',
-    templateUrl: '../../ionic2-helpers/pages/numeric-pad/numeric-pad.html'
+    templateUrl: '../../ionic-helpers/pages/numeric-pad/numeric-pad.html'
 })
 export class NumericPadPage extends BaseNumericPadPage {
     constructor(

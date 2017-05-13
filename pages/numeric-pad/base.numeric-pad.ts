@@ -1,3 +1,9 @@
+/**
+ * @name          BaseNumericPadPage
+ * @description   A page base class for a numeric pad interface for Ionic v2+ apps to allow users to enter numeric codes, PINs, etc.
+ * @author        Abraham Lopez <ablopez824@gmail.com>
+ */
+
 import { UI } from './../../libs/ui';
 import { Translator } from './../../providers/translator';
 import { Translate } from './../../providers/translate';

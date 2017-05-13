@@ -1,3 +1,9 @@
+/**
+ * @name            Translator
+ * @description     A simple, efficient i18n (internationalization) service provider for Ionic v2+ apps
+ * @author          Abraham Lopez <ablopez824@gmail.com>
+ */
+
 import { vsprintf } from './../libs/sprintf';
 import { sha1 } from './../libs/sha1';
 import { Injectable } from '@angular/core';

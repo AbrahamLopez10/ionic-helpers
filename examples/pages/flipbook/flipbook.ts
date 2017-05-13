@@ -69,16 +69,16 @@ this.modalCtrl.create(FlipbookPage, {
 */
 /*
 import { NavController, NavParams, Slides, Events, PopoverController, ToastController } from 'ionic-angular';
-import { BaseFlipbookPage } from '../../ionic2-helpers/pages/flipbook/base.flipbook';
+import { BaseFlipbookPage } from '../../ionic-helpers/pages/flipbook/base.flipbook';
 import { Component, ViewChild } from '@angular/core';
-import { Translator } from './../../ionic2-helpers/providers/translator';
+import { Translator } from './../../ionic-helpers/providers/translator';
 import { DomSanitizer } from '@angular/platform-browser';
 import { PhotoLibrary } from '@ionic-native/photo-library';
 import { SocialSharing } from '@ionic-native/social-sharing';
 
 @Component({
   selector: 'page-flipbook',
-  templateUrl: '../../ionic2-helpers/pages/flipbook/flipbook.html'
+  templateUrl: '../../ionic-helpers/pages/flipbook/flipbook.html'
 })
 export class FlipbookPage extends BaseFlipbookPage {
   @ViewChild('flipbook')

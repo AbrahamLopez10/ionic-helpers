@@ -1,13 +1,13 @@
-import { sprintf } from './sprintf';
-/*
-@name			Util
-@description	General utility functions
-@author			Abraham Lopez <abraham.lopez@aplimovil.mx>
-@version		1.0
+/**
+ * @name			Util
+ * @description		General utility functions for Cordova/PhoneGap mobile apps
+ * @requires		Cordova (version CLI-6.3.0 or greater)
+ * @author			Abraham Lopez <ablopez824@gmail.com>
 */
 
 import { UI } from './ui';
 import { sha1 } from './sha1';
+import { sprintf } from './sprintf';
 
 declare var cordova;
 declare var requestFileSystem, webkitRequestFileSystem, resolveLocalFileSystemURL, geolocation;
