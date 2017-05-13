@@ -1,11 +1,19 @@
+/**
+ * @name          BaseFlipbookPage
+ * @description   Page base class for Ionic v3+ apps to allow users browse an image catalog (as a horizontal slider), with integrated lazy loading and full support for pinch-to-zoom, bookmarks, comments per image, social sharing (Cordova plugin required), and saving to photo gallery (Cordova plugin required)
+ * @author        Abraham Lopez <ablopez824@gmail.com>
+ */
+
 import { DomSanitizer } from '@angular/platform-browser';
 import { UI } from './../../libs/ui';
 import { Translator } from './../../providers/translator';
 import { Translate } from './../../providers/translate';
 import { Component } from '@angular/core';
 import { NavController, NavParams, Slides, Events, PopoverController, ViewController, ToastController } from 'ionic-angular';
-import { SocialSharing } from "@ionic-native/social-sharing";
-import { PhotoLibrary, LibraryItem } from '@ionic-native/photo-library';
+
+/* The 3 optional dependencies below have been commented out and "any" has been used in this class instead of them to allow this class to compile even if these optional dependencies are missing */
+//import { SocialSharing } from "@ionic-native/social-sharing";
+//import { PhotoLibrary, LibraryItem } from '@ionic-native/photo-library';
 
 export interface FlipbookImage {
   url: string;
@@ -65,8 +73,8 @@ export class BaseFlipbookPage {
   protected toastCtrl: ToastController;
   protected popoverCtrl: PopoverController;
   protected sanitizer: DomSanitizer;
-  protected sharing: SocialSharing;
-  protected photoLibrary: PhotoLibrary;
+  protected sharing: any;
+  protected photoLibrary: any;
   
   public tr: Translate;
   protected slides: Slides;
@@ -189,7 +197,7 @@ export class BaseFlipbookPage {
     
     this.photoLibrary.requestAuthorization().then(() => {
       console.log('[Flipbook.saveImage] Authorized. Saving image...');
-      this.photoLibrary.saveImage(this.getCurrentImageURL(), this.saveAlbumName).then((libraryItem: LibraryItem) => {
+      this.photoLibrary.saveImage(this.getCurrentImageURL(), this.saveAlbumName).then((libraryItem: any) => {
         console.log('[Flipbook.saveImage] Success:', libraryItem);
         UI.toast(this.toastCtrl, this.tr._('The image has been saved to your device\'s photo gallery.'));
       }, (reason) => {
@@ -235,7 +243,7 @@ export class BaseFlipbookPage {
     for(let index = (this.activeIndex - this.lazyLoadOffset); index <= (this.activeIndex + this.lazyLoadOffset); index ++){
       if(index < 0 || index > this.images.length - 1) continue;
 
-      let slide: HTMLImageElement = document.getElementById('flipbook_slide_' + index) as HTMLImageElement;
+      let slide: any = document.getElementById('flipbook_slide_' + index);
       let src = slide.dataset.src;
 
       if(src != ''){
