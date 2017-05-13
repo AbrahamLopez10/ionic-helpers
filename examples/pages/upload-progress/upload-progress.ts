@@ -13,9 +13,10 @@ export class UploadProgressPage extends BaseUploadProgressPage {
     public navParams: NavParams,
     protected alertCtrl: AlertController,
     protected events: Events,
-    protected changeDetector: ChangeDetectorRef
+    protected changeDetector: ChangeDetectorRef,
+    protected translator: Translator
   ) {
-    super(navParams.get('fileName'));
+    super(translator, navParams.get('fileName'));
   }
 }
 */

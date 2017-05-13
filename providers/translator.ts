@@ -51,12 +51,14 @@ export class Translator {
     }
 
     translate(bundle: string, str: string, tokens: any[] = []): string {
-        if(!this.bundleStrings[bundle]) return str;
-        if(!this.bundleStrings[bundle][this.language]) return str;
+        let tokenizedStr = vsprintf(str, tokens);
+        
+        if(!this.bundleStrings[bundle]) return tokenizedStr;
+        if(!this.bundleStrings[bundle][this.language]) return tokenizedStr;
         
         let hash = sha1(str);
         let translation = this.bundleStrings[bundle][this.language][hash];
 
-        return translation ? vsprintf(translation, tokens) : str;
+        return translation ? vsprintf(translation, tokens) : tokenizedStr;
     }
 }

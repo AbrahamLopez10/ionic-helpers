@@ -11,30 +11,31 @@ import { ChangeDetectorRef } from '@angular/core';
 import { NavController, NavParams, Events, AlertController } from 'ionic-angular';
 
 export class BaseUploadProgressPage {
+  public progress: number = 0;
+  public fileName: string = '';
+  public tr: Translate;
+
+  /* Dependency injections */
   public navCtrl: NavController;
   public navParams: NavParams;
   protected alertCtrl: AlertController;
   protected events: Events;
   protected changeDetector: ChangeDetectorRef;
-  protected translator: Translator;
 
-  public progress: number = 0;
-  public fileName: string = '';
-  public tr: Translate;
-
-  constructor(fileName: string) {
-    this.fileName = fileName;
-    this.tr = new Translate(this.translator, 'UploadProgress');
+  constructor(translator: Translator, fileName: string) {
+    this.tr = new Translate(translator, 'UploadProgress');
     this.tr.register('es', [
       ['Cancel', 'Cancelar'],
       ['Are you sure you want to cancel the upload?', '¿Está seguro(a) que desea cancelar el envío?'],
       ['Uploading %s, please wait...', 'Subiendo %s, por favor espere...']
     ]);
+
+    this.fileName = fileName;
   }
 
   ionViewDidLoad() {
     this.events.subscribe('upload-progress:update', (progress: number, fileName?: string) => {
-      console.log('[UploadProgressPage] Progress updated: ' + progress + '%');
+      //console.log('[UploadProgressPage] Progress updated: ' + progress + '%');
       this.progress = progress;
       if(fileName) this.fileName = fileName;
       this.changeDetector.detectChanges();
