@@ -80,7 +80,7 @@ export class APIService extends AbstractAPIService {
     }
   }
 
-  register(userRegistration: UserRegistration, onSuccess: (user: User) => void, onError?: (error: string, response?: any) => void) {
+  registerUser(userRegistration: UserRegistration, onSuccess: (user: User) => void, onError?: (error: string, response?: any) => void) {
     this.create<User>('appuser', userRegistration, (user: User) => {
       onSuccess(user);
     }, onError);
