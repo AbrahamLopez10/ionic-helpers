@@ -17,6 +17,7 @@ import { NavController, NavParams, Slides, Events, PopoverController, ViewContro
 
 export interface FlipbookImage {
   url: string;
+  id?: any;
   comments?: string;
   bookmark?: string;
 }
@@ -24,6 +25,7 @@ export interface FlipbookImage {
 class Bookmark {
   public name: string;
   public index: number;
+  public image_id: any;
 }
 
 @Component({
@@ -48,7 +50,14 @@ export class FlipbookBookmarksPopover {
   }
 
   select(bookmark: Bookmark){
-    this.events.publish('flipbook:slideTo', bookmark.index);
+    if(bookmark.index){
+      this.events.publish('flipbook:slideTo', bookmark.index);
+    } else if(bookmark.image_id){
+      this.events.publish('flipbook:slideToImageId', bookmark.image_id);
+    } else {
+      throw new Error('[BaseFlipbookPage] Bookmark doesn\'t point to an index or an image_id.');
+    }
+    
     this.viewCtrl.dismiss();
   }
 }
@@ -100,6 +109,10 @@ export class BaseFlipbookPage {
     this.activeIndex = this.navParams.get('index') || 0;
     this.bookmarks = [];
 
+    if(this.navParams.get('bookmarks')){
+      this.bookmarks = this.navParams.get('bookmarks');
+    }
+
     if(this.navParams.get('allowSharing')){
       this.allowSharing = true;
     }
@@ -135,7 +148,7 @@ export class BaseFlipbookPage {
             this.images.push(item as FlipbookImage);
 
             if(item.bookmark){
-              this.bookmarks.push({
+              this.bookmarks.push(<Bookmark>{
                 name: item.bookmark,
                 index: index
               });
@@ -145,6 +158,9 @@ export class BaseFlipbookPage {
       } else console.warn('[Flipbook] No images were passed.');
     } else throw new Error('[Flipbook] The "images" parameter should be passed to the FlipbookPage instance.');
     
+    console.log('BOOKMARKS: ', this.bookmarks);
+    console.log('IMAGES: ', this.images);
+
     this.zoomDetectionTimer = setInterval(() => {
       let isZoomed = this.isSliderZoomed();
 
@@ -165,11 +181,16 @@ export class BaseFlipbookPage {
       this.slideTo(index);
     });
 
+    this.events.subscribe('flipbook:slideToImageId', (imageId: number) => {
+      this.slideToImageId(imageId);
+    });
+
     this.slideChanged();
   }
 
   ionViewWillLeave() {
     this.events.unsubscribe('flipbook:slideTo');
+    this.events.unsubscribe('flipbook:slideToImageId');
     clearInterval(this.zoomDetectionTimer);
   }
 
@@ -218,6 +239,21 @@ export class BaseFlipbookPage {
 
   slideTo(index: number){
     this.slides.slideTo(Math.min(index, (this.images.length - 1)));
+  }
+
+  slideToImageId(imageId: number){
+    let index = -1;
+
+    for(let slide of this.images){
+      index ++;
+
+      if(slide.id === imageId){
+        this.slideTo(index);
+        break;
+      }
+    }
+
+    console.warn('[BaseFlipbookPage.slideToImageId] Image ID not found: ' + imageId);
   }
 
   isSliderZoomed(): boolean {
