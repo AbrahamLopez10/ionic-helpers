@@ -25,12 +25,13 @@ export var Util = {
 
 	extend: function(object: Object, extendWith: Object): Object {
 		let newObject = {};
+		var key;
 		
-		for(var key in object){
+		for(key in object){
 			newObject[key] = object[key];
 		}
 
-		for(var key in extendWith){
+		for(key in extendWith){
 			newObject[key] = extendWith[key];
 		}
 

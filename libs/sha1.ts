@@ -235,9 +235,10 @@ function str2rstr_utf16be(input)
 function rstr2binb(input)
 {
   var output = Array(input.length >> 2);
-  for(var i = 0; i < output.length; i++)
+  var i;
+  for(i = 0; i < output.length; i++)
     output[i] = 0;
-  for(var i = 0; i < input.length * 8; i += 8)
+  for(i = 0; i < input.length * 8; i += 8)
     output[i>>5] |= (input.charCodeAt(i / 8) & 0xFF) << (24 - i % 32);
   return output;
 }

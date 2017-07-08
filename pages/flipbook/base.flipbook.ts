@@ -46,7 +46,7 @@ export class FlipbookBookmarksPopover {
     private events: Events,
     private viewCtrl: ViewController
   ){
-    this.bookmarks = navParams.get('bookmarks');
+    this.bookmarks = this.navParams.get('bookmarks');
   }
 
   select(bookmark: Bookmark){

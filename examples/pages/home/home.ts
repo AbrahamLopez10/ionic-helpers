@@ -1,6 +1,7 @@
 /*
 import { UI } from '../../ionic-helpers/libs/ui';
-import { APIService, User } from '../../providers/api-service';
+import { APIService } from '../../providers/api-service';
+import { User } from "../../ionic-helpers/providers/abstract-api-service";
 import { LoginPage } from '../login/login';
 import { Component } from '@angular/core';
 import { NavController, AlertController } from 'ionic-angular';
