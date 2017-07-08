@@ -46,6 +46,36 @@ export interface UserInterface {
   phone?: string;
 }
 
+export class User extends Entity implements UserInterface {
+  public id: number;
+  public username: string;
+  public token: string;
+  public name: string;
+  public email: string;
+  public phone: string;
+
+  getFirstName(): string {
+    if(!this.name) return '';
+
+    let name = this.name.split(' ');
+
+    if(name.length != 0){
+      let firstName = name[0].toLowerCase();
+      firstName = firstName.charAt(0).toUpperCase() + firstName.substr(1, firstName.length);
+      return firstName;
+    }
+    else return '';
+  }
+}
+
+export class UserRegistration {
+  username: string;
+  name: string;
+  password: string;
+  type: number;
+  email: string;
+}
+
 export class APIRequestOptions {
   useCache: boolean = false; // If set to true automatically enables useOfflineCache and useFastCache
   useOfflineCache: boolean = false;
@@ -110,7 +140,7 @@ export abstract class AbstractAPIService {
   protected MESSAGE_OFFLINE = 'Offline';
   protected CACHE_STORAGE_KEY = 'AbstractAPIService.Cache';
   protected FAST_CACHE_MAX_AGE = 1; // in minutes
-  protected SECURE_STORAGE_KEY = 'AbstractAPIService.SecureStorage';
+  protected STORAGE_KEY_PREFIX = 'AbstractAPIService.SecureStorage';
   protected PASSWORD_STORAGE_EXPIRATION_DAYS = 30;
 
   private _ready: boolean = false;
@@ -162,7 +192,7 @@ export abstract class AbstractAPIService {
   useSecureStorage(secureStorage) {
     if(window['cordova']){
       console.info('[AbstractAPIService.useSecureStorage] Using secure storage.');
-      secureStorage.create(this.getSecureStorageKey()).then((secureStorageObject) => {
+      secureStorage.create(this.getStorageKey()).then((secureStorageObject) => {
         this.secureStorageObject = secureStorageObject;
         this.onSecureStorageUsed();
       });
@@ -172,6 +202,7 @@ export abstract class AbstractAPIService {
   }
 
   onSecureStorageUsed() {
+    this.loadCache();
     this.loadPassword();
   }
 
@@ -180,29 +211,31 @@ export abstract class AbstractAPIService {
     
     options = new APIRequestOptions(options);
 
-    let cacheResult = this.getCacheResult(endpoint, params);
-
     if(options.useCache){
       options.useFastCache = true;
       options.useOfflineCache = true;
     }
 
-    if(options.useFastCache && cacheResult){
-      let age = (Util.getTimestamp() - cacheResult.timestamp) / 60;
+    if(options.useFastCache || options.useOfflineCache){
+      let cacheResult = this.getCacheResult(endpoint, params);
 
-      if(age <= this.FAST_CACHE_MAX_AGE){
-        this.handleSuccess(cacheResult.data, onSuccess);
-        return;
+      if(options.useFastCache && cacheResult){
+        let age = (Util.getTimestamp() - cacheResult.timestamp) / 60;
+
+        if(age <= this.FAST_CACHE_MAX_AGE){
+          this.handleSuccess(cacheResult.data, onSuccess);
+          return;
+        }
       }
-    }
-    else if(options.useOfflineCache && !Util.isOnline()){
-      if(cacheResult){
-        UI.toast(this.toastCtrl, this.MESSAGE_OFFLINE);
-        this.handleSuccess(cacheResult.data, onSuccess);
-        return;
-      }
-      else{
-        this.handleError(options, this.ERROR_CONNECTION, onError);
+      else if(options.useOfflineCache && !Util.isOnline()){
+        if(cacheResult){
+          UI.toast(this.toastCtrl, this.MESSAGE_OFFLINE);
+          this.handleSuccess(cacheResult.data, onSuccess);
+          return;
+        }
+        else{
+          this.handleError(options, this.ERROR_CONNECTION, onError);
+        }
       }
     }
 
@@ -425,9 +458,9 @@ export abstract class AbstractAPIService {
     return this._password;
   }
 
-  protected getSecureStorageKey(suffix = '') {
+  protected getStorageKey(suffix = '') {
     // Append partial hash of API URL to cache key to make it unique among the same host (mainly for development purposes using localhost)
-    return this.SECURE_STORAGE_KEY + '.' + sha1(this.API_URL).substr(0, 15) + suffix;
+    return this.STORAGE_KEY_PREFIX + '.' + sha1(this.API_URL).substr(0, 15) + suffix;
   }
 
   private loadPassword() {
@@ -440,7 +473,7 @@ export abstract class AbstractAPIService {
         console.warn('[AbstractAPIService.loadPassword] Could not load password from secure storage: ', error);
       });
     } else {
-      this.parsePasswordStorageContents(localStorage.getItem(this.getSecureStorageKey('-password')));
+      this.parsePasswordStorageContents(localStorage.getItem(this.getStorageKey('-password')));
     }
   }
 
@@ -457,7 +490,7 @@ export abstract class AbstractAPIService {
       });
     } else {
       console.info('[AbstractAPIService.savePassword] Password successfully saved using local storage.');
-      localStorage.setItem(this.getSecureStorageKey('-password'), this.getPasswordStorageContents());
+      localStorage.setItem(this.getStorageKey('-password'), this.getPasswordStorageContents());
     }
   }
 
@@ -514,21 +547,6 @@ export abstract class AbstractAPIService {
     }
   }
 
-  clearCache(endpoint?: string){
-    if(endpoint){
-      let endpointHash: string = sha1(endpoint);
-
-      if(this._cache[endpointHash]){
-        delete this._cache[endpointHash];
-      }
-    }
-    else{
-      this._cache = {};
-    }
-
-    this.saveCache();
-  }
-
   getInternalUser(): UserInterface {
     return this._user;
   }
@@ -576,15 +594,52 @@ export abstract class AbstractAPIService {
   }
 
   private loadCache() {
-    this._cache = Util.retrieve(this.getCacheStorageKey()) || {};
+    if(this.secureStorageObject){
+      this.secureStorageObject.get('cache').then((json) => {
+        console.log('[AbstractAPIService.loadCache] Cache loaded from secure storage.');
+        this._cache = Util.parseJSON(json);
+      }, (error) => {
+        console.warn('[AbstractAPIService.loadCache] Error when loading from secure storage: ', error);
+      });
+    } else {
+      console.log('[AbstractAPIService.loadCache] Cache loaded from local storage.');
+      this._cache = Util.retrieve(this.getCacheStorageKey()) || {};
+    }
   }
 
   private saveCache() {
-    let saved = Util.store(this.getCacheStorageKey(), this._cache);
-    if(!saved){
-      // If cache size exceeds localStorage limit then clear the cache
-      localStorage.setItem(this.getCacheStorageKey(), '');
+    if(this.secureStorageObject){
+      let json = JSON.stringify(this._cache);
+      this.secureStorageObject.set('cache', json).then(() => {
+        console.log('[AbstractAPIService.saveCache] Cache saved in secure storage.');
+      }, (error) => {
+        console.warn('[AbstractAPIService.saveCache] Cache save error: ', error);
+      });
+    } else {
+      let saved = Util.store(this.getCacheStorageKey(), this._cache);
+      if(saved){
+        console.log('[AbstractAPIService.saveCache] Cache saved in local storage.');
+      } else {
+        console.warn('[AbstractAPIService.saveCache] Local storage limit exceeded, cleaning up...');
+        // If cache size exceeds localStorage limit then clear the cache
+        localStorage.setItem(this.getCacheStorageKey(), '');
+      }
     }
+  }
+
+  clearCache(endpoint?: string){
+    if(endpoint){
+      let endpointHash: string = sha1(endpoint);
+
+      if(this._cache[endpointHash]){
+        delete this._cache[endpointHash];
+      }
+    }
+    else{
+      this._cache = {};
+    }
+
+    this.saveCache();
   }
 
   private getCacheStorageKey() {
@@ -600,17 +655,17 @@ export abstract class AbstractAPIService {
     return result || null;
   }
 
-  private clearCRUDCache(modelName: string) {
-    this.clearCache('get/' + modelName);
-    this.clearCache('read/' + modelName);
-  }
-
   private saveResultInCache(endpoint: string, params: Object, result: any) {
     let endpointHash: string = sha1(endpoint);
     let cacheId = this.getParamsHash(params);
     if(!this._cache[endpointHash]) this._cache[endpointHash] = {};
     this._cache[endpointHash][cacheId] = new CacheResult(result);
     this.saveCache();
+  }
+
+  private clearCRUDCache(modelName: string) {
+    this.clearCache('get/' + modelName);
+    this.clearCache('read/' + modelName);
   }
 
   private getParams(additionalParams?: Object): URLSearchParams {

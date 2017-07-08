@@ -1,54 +1,23 @@
 /*
 === OPTIONAL ===
-To enable the secure storing of the user's password in CRUD calls, do the following:
+To enable the non-limited and secure storage of cached response, or the secure storage of the user's password in CRUD calls, do the following:
 
 1. Install the SecureStorage plugin from Ionic Native:
 ----
-  ionic plugin add cordova-plugin-secure-storage && npm install --save @ionic-native/secure-storage
+  ionic plugin add cordova-plugin-secure-storage --save && npm install --save @ionic-native/secure-storage
 ----
 
 2. Import SecureStorage (@ionic-native/secure-storage) in app.module.ts and add SecureStorage to the "providers" section.
 
-3. Uncomment the import (~ line 16) and dependency injection (~ line 59) below for SecureStorage
-as well as the "this.useSecureStorage(secureStorage)" call (~ line 68).
+3. Uncomment the import and dependency injection below for SecureStorage as well as the "this.useSecureStorage(secureStorage)"
 */
 /*
 import { AlertController, LoadingController, ToastController } from 'ionic-angular';
-import { AbstractAPIService, Entity, UserInterface } from '../ionic-helpers/providers/abstract-api-service';
+import { AbstractAPIService, User, UserRegistration } from '../ionic-helpers/providers/abstract-api-service';
 import { Injectable } from '@angular/core';
 import { Http } from '@angular/http';
 import { Util } from '../ionic-helpers/libs/util';
 //import { SecureStorage } from '@ionic-native/secure-storage';
-
-export class User extends Entity implements UserInterface {
-  public id: number;
-  public username: string;
-  public token: string;
-  public name: string;
-  public email: string;
-  public phone: string;
-
-  getFirstName(): string {
-    if(this.name) return '';
-
-    let name = this.name.split(' ');
-
-    if(name.length != 0){
-      let firstName = name[0].toLowerCase();
-      firstName = firstName.charAt(0).toUpperCase() + firstName.substr(1, firstName.length);
-      return firstName;
-    }
-    else return '';
-  }
-}
-
-export class UserRegistration {
-  username: string;
-  name: string;
-  password: string;
-  type: number;
-  email: string;
-}
 
 @Injectable()
 export class APIService extends AbstractAPIService {
@@ -69,7 +38,7 @@ export class APIService extends AbstractAPIService {
     super();
     this.init();
 
-    //this.useSecureStorage();
+    //this.useSecureStorage(secureStorage);
 
     let userData = Util.retrieve(this.USER_STORAGE_ID);
 
