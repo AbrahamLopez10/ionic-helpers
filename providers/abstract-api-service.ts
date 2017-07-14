@@ -668,6 +668,35 @@ export abstract class AbstractAPIService {
     this.clearCache('read/' + modelName);
   }
 
+  getCacheItem(key: string): Promise<any> {
+    return new Promise((resolve, reject) => {
+      if(this.secureStorageObject){
+        this.secureStorageObject.get(key).then((value) => {
+          resolve(value);
+        }, (error) => {
+          reject(error);
+        });
+      } else {
+        resolve(localStorage.getItem(this.getStorageKey(key)));
+      }
+    });
+  }
+
+  setCacheItem(key: string, value: any): Promise<any> {
+    return new Promise((resolve, reject) => {
+      if(this.secureStorageObject){
+        this.secureStorageObject.set(key, value).then(() => {
+          resolve();
+        }, (error) => {
+          reject(error);
+        });
+      } else {
+        localStorage.setItem(this.getStorageKey(key), value);
+        resolve();
+      }
+    });
+  }
+
   private getParams(additionalParams?: Object): URLSearchParams {
     let params = new URLSearchParams('', new APIQueryEncoder());
 
