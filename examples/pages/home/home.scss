@@ -21,6 +21,7 @@ page-home {
             background: linear-gradient(to bottom, #ffffff 0%,#f6f6f6 47%,#ededed 100%);
             box-shadow: 1px 1px 10px 1px #ddd;
             border-radius: 5px !important;
+            border: 1px #bbb solid;
 
             &.activated {
                 background-color: color($colors, primary) !important;
@@ -35,5 +36,6 @@ page-home {
     button[logout] {
         display: block;
         margin: 1em auto 0 auto;
+        color: color($colors, secondary);
     }
 }
