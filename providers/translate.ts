@@ -11,9 +11,13 @@ export type Translation = Array<string[]>;
 export class Translate {
     constructor(
         private translator: Translator,
-        private bundle: string
+        private bundle: string = 'default'
     ) {
-
+        if(bundle == 'default' && !window['_T']){
+            window['_T'] = (str, ...tokens) => {
+                this._.apply(str, [str, ...tokens]);
+            };
+        }
     }
 
     register(language: string, translation: Translation) {
@@ -22,5 +26,5 @@ export class Translate {
 
     _(str, ...tokens): string {
         return this.translator.translate(this.bundle, str, tokens);
-    } 
+    }
 }
