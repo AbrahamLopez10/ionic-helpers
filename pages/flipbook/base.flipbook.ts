@@ -9,7 +9,7 @@ import { UI } from './../../libs/ui';
 import { Translator } from './../../providers/translator';
 import { Translate } from './../../providers/translate';
 import { Component } from '@angular/core';
-import { NavController, NavParams, Slides, Events, PopoverController, ViewController, ToastController } from 'ionic-angular';
+import { IonicPage, NavController, NavParams, Slides, Events, PopoverController, ViewController, ToastController } from 'ionic-angular';
 
 /* The 3 optional dependencies below have been commented out and "any" has been used in this class instead of them to allow this class to compile even if these optional dependencies are missing */
 //import { SocialSharing } from "@ionic-native/social-sharing";
@@ -28,6 +28,7 @@ class Bookmark {
   public image_id: any;
 }
 
+@IonicPage()
 @Component({
   selector: 'flipbook-bookmarks',
   template: `
@@ -195,7 +196,7 @@ export class BaseFlipbookPage {
   }
 
   showBookmarks(event: Event) {
-    let popover = this.popoverCtrl.create(FlipbookBookmarksPopover, {
+    let popover = this.popoverCtrl.create('FlipbookBookmarksPopover', {
       bookmarks: this.bookmarks
     });
 
