@@ -50,11 +50,11 @@ export var UI = {
 		}
 	},
 
-	setLanguage: function(language){
+	setLanguage: function(language: string){
 		this.language = language;
 	},
 
-	getLanguageString: function(stringName){
+	getLanguageString: function(stringName: string){
 		return this.languageStrings[this.language][stringName];
 	},
 

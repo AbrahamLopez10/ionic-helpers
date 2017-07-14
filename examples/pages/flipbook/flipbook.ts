@@ -93,7 +93,7 @@ export class FlipbookPage extends BaseFlipbookPage {
     protected sanitizer: DomSanitizer,
     //protected sharing: SocialSharing,
     //protected photoLibrary: PhotoLibrary,
-    private translator: Translator
+    translator: Translator
   ) {
     super(translator);
     this.init();
