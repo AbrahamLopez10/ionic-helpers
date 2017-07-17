@@ -15,7 +15,7 @@ export class Translate {
     ) {
         if(bundle == 'default' && !window['_T']){
             window['_T'] = (str, ...tokens) => {
-                this._.apply(str, [str, ...tokens]);
+                return this.translator.translate(this.bundle, str, tokens);
             };
         }
     }

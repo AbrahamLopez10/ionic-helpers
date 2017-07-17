@@ -321,7 +321,7 @@ export abstract class AbstractAPIService {
       for(let key in data){
         let value = data[key];
 
-        if(value !== null && excludedFields.indexOf(key) == -1 && (/string|number|boolean/).test(typeof value)){
+        if(value !== null && (!excludedFields || excludedFields.indexOf(key) == -1) && (/string|number|boolean/).test(typeof value)){
           params[key] = value;
         }
       }
