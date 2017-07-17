@@ -947,6 +947,12 @@ export var Util = {
 		return new Date(timestamp * 1000);
 	},
 
+	compare: function(a: any, b: any){
+		if(a < b) return -1;
+		else if(a > b) return 1;
+		else return 0;
+	},
+
 	naturalCompare: function(as, bs){
 	    var a, b, a1, b1, i, n, L;
 	    var rx=/(\.\d+)|(\d+(\.\d+)?)|([^\d.]+)|(\.\D+)|(\.$)/g;
