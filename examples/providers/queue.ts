@@ -1,20 +1,23 @@
 /*
-import { Translator } from './../ionic-helpers/providers/translator';
 import { APIService } from "./api-service";
+import { AbstractQueue } from './../ionic-helpers/providers/abstract-queue';
 import { Injectable } from '@angular/core';
 
 @Injectable()
 export class Queue extends AbstractQueue<MODEL> {
-  private INTERVAL = 5000;
-
-  private timer: number;
-
   constructor(
-    protected api: APIService,
-    translator: Translator
+    protected api: APIService
   ){
-    super(translator);
-    this.load();
+    super();
+    this.init();
+  }
+
+  process() {
+    let photo = this.peek(); // Obtain the item
+    
+    // Process the item here
+
+    photo.pop(); // Remove the item
   }
 }
 */

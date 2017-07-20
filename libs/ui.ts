@@ -11,6 +11,7 @@ export var UI = {
 	alertController: null,
 	loaderController: null,
 	toastController: null,
+	currentToast: null,
 	dialogInstances: [],
 	backButtonCallbacksDisabled: null,
 	languageStrings: {
@@ -80,6 +81,8 @@ export var UI = {
 	},
 
 	alert: function(alertCtrl, message, callback?, buttonText?): Alert {
+		if(typeof message != 'string') message = message.toString();
+
 		message = (message || '').replace(/\n/g, '<br />');
 		
 		var alert = alertCtrl.create({
@@ -114,6 +117,7 @@ export var UI = {
 			title = '';
 		}
 
+		if(typeof message != 'string') message = message.toString();
 		message = (message || '').replace(/\n/g, '<br />');
 
 		var alert = this.alertController.create({
@@ -254,11 +258,20 @@ export var UI = {
 	},
 	
 	toast: function(toastController, message, options?): Toast {
+		if(UI.currentToast){
+			UI.currentToast.dismiss().then(() => {
+				setTimeout(() => {
+					UI.toast(toastController, message, options);
+				}, 100);
+			}).catch(() => {});
+
+			return;
+		}
+
 		if(!options) options = {};
 
 		var toast = toastController.create({
           message: message,
-          duration: (options.duration || 5000),
           position: (options.position || 'bottom'),
           cssClass: (options.cssClass || 'notification-toast'),
           showCloseButton: (options.showCloseButton !== undefined ? options.showCloseButton : true),
@@ -266,7 +279,16 @@ export var UI = {
           dismissOnPageChange: (options.dismissOnPageChange !== undefined ? options.dismissOnPageChange : false)
         });
 
-        toast.present();
+		toast.present();
+
+		UI.currentToast = toast;
+		
+		if(options.duration){
+			setTimeout(() => {
+				UI.currentToast = null;
+				toast.dismiss().catch(() => {});
+			}, options.duration);
+		}
 
 		return toast;
 	},

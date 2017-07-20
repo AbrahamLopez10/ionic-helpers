@@ -980,8 +980,8 @@ export var Util = {
 
 	isOnline: function(){
 		// Requires the org.apache.cordova.network-information PhoneGap plugin, otherwise it will use the deprecated navigator.onLine property
-		if(typeof navigator['connection'] != 'undefined' && typeof navigator['connection'].type != 'undefined'){
-			return (navigator['connection'].type != 'none');
+		if(typeof navigator['connection'] != 'undefined'){
+			return (navigator['connection'].type != 'none' && navigator['connection'].type != 'unknown');
 		}
 		else{
 			return navigator.onLine ? true : false;
