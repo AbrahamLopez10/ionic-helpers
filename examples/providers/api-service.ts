@@ -1,15 +1,22 @@
 /*
 === OPTIONAL ===
-To enable the non-limited and secure storage of cached response, or the secure storage of the user's password in CRUD calls, do the following:
+To enable the permanent storage of cached responses and custom items, and/or the secure storage of the user's password in CRUD calls (to avoid requesting the password to the user on each CRUD operation), do the following:
 
-1. Install the SecureStorage plugin from Ionic Native:
+1. Install the Native Storage plugin from Ionic Native:
 ----
-  ionic plugin add cordova-plugin-secure-storage --save && npm install --save @ionic-native/secure-storage
+  ionic plugin add cordova-plugin-native-storage --save && npm install --save @ionic-native/native-storage
 ----
 
-2. Import SecureStorage (@ionic-native/secure-storage) in app.module.ts and add SecureStorage to the "providers" section.
+2. Import Native Storage (@ionic-native/native-storage) in app.module.ts and add Native Storage to the "providers" section.
 
-3. Uncomment the import and dependency injection below for SecureStorage as well as the "this.useSecureStorage(secureStorage)"
+3. Install the Native Storage plugin from Ionic Native:
+----
+  ionic plugin add cordova-plugin-native-storage --save && npm install --save @ionic-native/native-storage
+----
+
+4. Import Secure Storage (@ionic-native/secure-storage) in app.module.ts and add Secure Storage to the "providers" section.
+
+5. Uncomment the import and dependency injection below for NativeStorage and SecureStorage as well as the "this.useNativeStorage(nativeStorage)" and "this.useSecureStorage(secureStorage)" calls
 */
 /*
 import { AlertController, LoadingController, ToastController } from 'ionic-angular';
@@ -30,6 +37,7 @@ export class APIService extends AbstractAPIService {
 
   constructor(
     protected http: Http,
+    //protected nativeStorage: NativeStorage,
     //protected secureStorage: SecureStorage,
     protected alertCtrl: AlertController,
     protected loadingCtrl: LoadingController,
@@ -38,13 +46,13 @@ export class APIService extends AbstractAPIService {
     super();
     this.init();
 
+    //this.useNativeStorage(nativeStorage);
     //this.useSecureStorage(secureStorage);
 
     let userData = Util.retrieve(this.USER_STORAGE_ID);
 
     if(userData && userData.id){
       let user = new User(userData);
-      this.setInternalUser(user);
       this.setUser(user);
     }
   }
@@ -81,14 +89,9 @@ export class APIService extends AbstractAPIService {
 
   setUser(data: Object) {
     Util.store(this.USER_STORAGE_ID, data);
-
-    this.user = new User();
-    
-    for(var key in data){
-      this.user[key] = data[key];
-    }
-
+    this.user = Object.assign(new Employee, data);
     this.setInternalUser(this.user);
+    console.log('[APIService] User: ', this.user);
   }
 }
 */

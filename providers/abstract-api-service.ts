@@ -130,6 +130,7 @@ export abstract class AbstractAPIService {
   protected alertCtrl: AlertController;
   protected loadingCtrl: LoadingController;
   protected toastCtrl: ToastController;
+  protected nativeStorage: any;
   protected secureStorageObject: any;
 
   protected ERROR_GENERIC = 'Sorry, an error ocurred, please try again later.';
@@ -189,6 +190,10 @@ export abstract class AbstractAPIService {
     return this.API_URL + endpoint;
   }
 
+  useNativeStorage(nativeStorage) {
+    this.nativeStorage = nativeStorage;
+  }
+
   useSecureStorage(secureStorage) {
     if(window['cordova']){
       console.info('[AbstractAPIService.useSecureStorage] Using secure storage.');
@@ -217,24 +222,34 @@ export abstract class AbstractAPIService {
     }
 
     if(options.useFastCache || options.useOfflineCache){
-      let cacheResult = this.getCacheResult(endpoint, params);
+      let cachedResult = this.getCacheResult(endpoint, params);
 
-      if(options.useFastCache && cacheResult){
-        let age = (Util.getTimestamp() - cacheResult.timestamp) / 60;
-
-        if(age <= this.FAST_CACHE_MAX_AGE){
-          this.handleSuccess(cacheResult.data, onSuccess);
-          return;
-        }
-      }
-      else if(options.useOfflineCache && !Util.isOnline()){
-        if(cacheResult){
-          UI.toast(this.toastCtrl, this.MESSAGE_OFFLINE);
-          this.handleSuccess(cacheResult.data, onSuccess);
-          return;
+      if(!Util.isOnline()){
+        if(options.useOfflineCache){
+          if(cachedResult){
+            UI.toast(this.toastCtrl, this.MESSAGE_OFFLINE, {
+              duration: 3000
+            });
+            this.handleSuccess(cachedResult.data, onSuccess);
+            return;
+          }
+          else{
+            this.handleError(options, this.ERROR_CONNECTION, onError);
+            return;
+          }
         }
         else{
           this.handleError(options, this.ERROR_CONNECTION, onError);
+          return;
+        }
+      }
+
+      if(options.useFastCache && cachedResult){
+        let age = (Util.getTimestamp() - cachedResult.timestamp) / 60;
+
+        if(age <= this.FAST_CACHE_MAX_AGE){
+          this.handleSuccess(cachedResult.data, onSuccess);
+          return;
         }
       }
     }
@@ -396,7 +411,7 @@ export abstract class AbstractAPIService {
       for(let key in data){
         let value = data[key];
 
-        if(value !== null && excludedFields.indexOf(key) == -1 && (/string|number|boolean/).test(typeof value)){
+        if(value !== null && (!excludedFields || excludedFields.indexOf(key) == -1) && (/string|number|boolean/).test(typeof value)){
           params[key] = value;
         }
       }
@@ -594,12 +609,14 @@ export abstract class AbstractAPIService {
   }
 
   private loadCache() {
-    if(this.secureStorageObject){
-      this.secureStorageObject.get('cache').then((json) => {
-        console.log('[AbstractAPIService.loadCache] Cache loaded from secure storage.');
+    if(this.nativeStorage && window['cordova']){
+      this.nativeStorage.getItem('cache').then((json) => {
+        console.log('[AbstractAPIService.loadCache] Cache loaded from native storage.');
         this._cache = Util.parseJSON(json);
       }, (error) => {
-        console.warn('[AbstractAPIService.loadCache] Error when loading from secure storage: ', error);
+        if(error && error.code != 2){ // Error code 2 (Item not found)
+          console.warn('[AbstractAPIService.loadCache] Error when loading from native storage: ', error);
+        }
       });
     } else {
       console.log('[AbstractAPIService.loadCache] Cache loaded from local storage.');
@@ -608,10 +625,10 @@ export abstract class AbstractAPIService {
   }
 
   private saveCache() {
-    if(this.secureStorageObject){
+    if(this.nativeStorage && window['cordova']){
       let json = JSON.stringify(this._cache);
-      this.secureStorageObject.set('cache', json).then(() => {
-        console.log('[AbstractAPIService.saveCache] Cache saved in secure storage.');
+      this.nativeStorage.setItem('cache', json).then(() => {
+        console.log('[AbstractAPIService.saveCache] Cache saved in native storage.');
       }, (error) => {
         console.warn('[AbstractAPIService.saveCache] Cache save error: ', error);
       });
@@ -670,10 +687,11 @@ export abstract class AbstractAPIService {
 
   getCacheItem(key: string): Promise<any> {
     return new Promise((resolve, reject) => {
-      if(this.secureStorageObject){
-        this.secureStorageObject.get(key).then((value) => {
+      if(this.nativeStorage && window['cordova']){
+        this.nativeStorage.getItem(key).then((value) => {
           resolve(value);
         }, (error) => {
+          console.warn('[AbstractAPIService.getCacheItem] Error: ', error);
           reject(error);
         });
       } else {
@@ -684,10 +702,11 @@ export abstract class AbstractAPIService {
 
   setCacheItem(key: string, value: any): Promise<any> {
     return new Promise((resolve, reject) => {
-      if(this.secureStorageObject){
-        this.secureStorageObject.set(key, value).then(() => {
+      if(this.nativeStorage && window['cordova']){
+        this.nativeStorage.setItem(key, value).then(() => {
           resolve();
         }, (error) => {
+          console.warn('[AbstractAPIService.setCacheItem] Error: ', error);
           reject(error);
         });
       } else {
@@ -757,6 +776,9 @@ export abstract class AbstractAPIService {
       else{
         error = response.toString();
       }
+    }
+    else if(typeof response == 'string'){
+      error = response;
     }
 
     if(!error){
