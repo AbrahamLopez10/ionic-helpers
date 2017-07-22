@@ -212,6 +212,8 @@ export abstract class AbstractAPIService {
   }
 
   get<T>(endpoint: string, params: Object, onSuccess: (response: any, results?: T[]) => void, onError?: (error: string, response?: any) => void, options?: APIRequestOptions, headers: Object = {}): void {
+    if(!this.API_URL) throw new Error('[AbstractAPIService.get] Please set a value for API_URL to make API requests.');
+
     if(!params) params = {};
     
     options = new APIRequestOptions(options);
@@ -283,6 +285,8 @@ export abstract class AbstractAPIService {
   }
 
   post(endpoint: string, params: Object, onSuccess?: (response?: any) => void, onError?: (error: string, response?: any) => void, options?: APIRequestOptions, headers: Object = {}): void {
+    if(!this.API_URL) throw new Error('[AbstractAPIService.post] Please set a value for API_URL to make API requests.');
+
     if(!params) params = {};
     
     options = new APIRequestOptions(options);
@@ -688,13 +692,16 @@ export abstract class AbstractAPIService {
   getCacheItem(key: string): Promise<any> {
     return new Promise((resolve, reject) => {
       if(this.nativeStorage && window['cordova']){
+        console.log('[AbstractAPIService.getCacheItem] Using native storage.');
         this.nativeStorage.getItem(key).then((value) => {
+          console.log('[AbstractAPIService.getCacheItem] Item retrieved: ' + key);
           resolve(value);
         }, (error) => {
           console.warn('[AbstractAPIService.getCacheItem] Error: ', error);
           reject(error);
         });
       } else {
+        console.log('[AbstractAPIService.getCacheItem] Using local storage. Item retrieved: ' + key);
         resolve(localStorage.getItem(this.getStorageKey(key)));
       }
     });
@@ -703,13 +710,53 @@ export abstract class AbstractAPIService {
   setCacheItem(key: string, value: any): Promise<any> {
     return new Promise((resolve, reject) => {
       if(this.nativeStorage && window['cordova']){
+        console.log('[AbstractAPIService.setCacheItem] Using secure storage.');
         this.nativeStorage.setItem(key, value).then(() => {
+          console.log('[AbstractAPIService.setCacheItem] Item saved: ' + key);
           resolve();
         }, (error) => {
           console.warn('[AbstractAPIService.setCacheItem] Error: ', error);
           reject(error);
         });
       } else {
+        console.log('[AbstractAPIService.setCacheItem] Using local storage. Item saved: ' + key);
+        localStorage.setItem(this.getStorageKey(key), value);
+        resolve();
+      }
+    });
+  }
+
+  getSecureItem(key: string): Promise<any> {
+    return new Promise((resolve, reject) => {
+      if(this.nativeStorage && window['cordova']){
+        console.log('[AbstractAPIService.getSecureItem] Using native storage.');
+        this.nativeStorage.getItem(key).then((value) => {
+          console.log('[AbstractAPIService.getSecureItem] Item retrieved: ' + key);
+          resolve(value);
+        }, (error) => {
+          console.warn('[AbstractAPIService.getSecureItem] Error: ', error);
+          reject(error);
+        });
+      } else {
+        console.log('[AbstractAPIService.getSecureItem] Using local storage. Item retrieved: ' + key);
+        resolve(localStorage.getItem(this.getStorageKey(key)));
+      }
+    });
+  }
+
+  setSecureItem(key: string, value: any): Promise<any> {
+    return new Promise((resolve, reject) => {
+      if(this.nativeStorage && window['cordova']){
+        console.log('[AbstractAPIService.setSecureItem] Using secure storage.');
+        this.nativeStorage.setItem(key, value).then(() => {
+          console.log('[AbstractAPIService.setSecureItem] Item saved: ' + key);
+          resolve();
+        }, (error) => {
+          console.warn('[AbstractAPIService.setSecureItem] Error: ', error);
+          reject(error);
+        });
+      } else {
+        console.log('[AbstractAPIService.setSecureItem] Using local storage. Item saved: ' + key);
         localStorage.setItem(this.getStorageKey(key), value);
         resolve();
       }
