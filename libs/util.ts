@@ -1164,5 +1164,48 @@ export var Util = {
 		}
 
 		window.open(url, '_system');
+	},
+
+	uploadToAmazonS3: function(accessKeyId: string, secretAccessKey: string, awsRegion: string, bucketName: string, localFileUrl: string, saveAsFilename: string): Promise<string>{
+		let s3 = new AWS.S3({
+			accessKeyId: accessKeyId,
+			secretAccessKey: secretAccessKey,
+			region: awsRegion,
+			sslEnabled: true
+		});
+
+	    return new Promise((resolve: (s3FileUrl: string) => void, reject: (error: string) => void) => {
+			Util.resolveFileURL(localFileUrl, (fileEntry) => {
+				let extension = Util.getFileExtension(localFileUrl);
+				let s3FileUrl = `https://${bucketName}.s3.amazonaws.com/${saveAsFilename}`;
+				
+				Util.readBinaryFile(fileEntry, (blob) => {
+					console.log('[Util.uploadToAmazonS3] Uploading file: ' + localFileUrl);
+					
+					this.s3.upload({
+						Bucket: this.AWS_S3_BUCKET,
+						Key: saveAsFilename,
+						Body: blob,
+						ContentType: Util.getFileMIMEType(localFileUrl)
+					}).on('httpUploadProgress', (evt) => {
+						console.log('[Util.uploadToAmazonS3] Upload progress: ' + Math.round((evt.loaded / evt.total) * 100) + '%');
+					}).send((err, data) => {
+						if(!err){
+							console.info('[Util.uploadToAmazonS3] File "' + saveAsFilename + '" uploaded successfully.');
+							resolve(s3FileUrl);
+						} else {
+							console.warn('[Util.uploadToAmazonS3] Error occured when uploading file "' + saveAsFilename + '":', err);
+							reject(err);
+						}
+					});
+				}, (error) => {
+					console.warn('[Util.uploadToAmazonS3] Local file could not be read.');
+					reject(error);
+				});
+			}, (error) => {
+				console.warn('[Util.uploadToAmazonS3] Local file URL could not be resolved.');
+				reject(error);
+			});
+		});
 	}
 };
