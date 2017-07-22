@@ -9,9 +9,9 @@ To enable the permanent storage of cached responses and custom items, and/or the
 
 2. Import Native Storage (@ionic-native/native-storage) in app.module.ts and add Native Storage to the "providers" section.
 
-3. Install the Native Storage plugin from Ionic Native:
+3. Install the Secure Storage plugin from Ionic Native:
 ----
-  ionic plugin add cordova-plugin-native-storage --save && npm install --save @ionic-native/native-storage
+  ionic plugin add cordova-plugin-secure-storage --save && npm install --save @ionic-native/secure-storage
 ----
 
 4. Import Secure Storage (@ionic-native/secure-storage) in app.module.ts and add Secure Storage to the "providers" section.
@@ -20,20 +20,23 @@ To enable the permanent storage of cached responses and custom items, and/or the
 */
 /*
 import { AlertController, LoadingController, ToastController } from 'ionic-angular';
-import { AbstractAPIService, User, UserRegistration } from '../ionic-helpers/providers/abstract-api-service';
+import { AbstractAPIService, User } from '../ionic-helpers/providers/abstract-api-service';
 import { Injectable } from '@angular/core';
 import { Http } from '@angular/http';
 import { Util } from '../ionic-helpers/libs/util';
-//import { SecureStorage } from '@ionic-native/secure-storage';
+import { SecureStorage } from '@ionic-native/secure-storage';
+import { NativeStorage } from '@ionic-native/native-storage';
 
 @Injectable()
 export class APIService extends AbstractAPIService {
   protected API_URL: string = '';
   protected API_KEY: string = '';
+  protected ERROR_GENERIC = 'Conexión inestable, por favor revise su acceso a Internet.';
+  protected ERROR_CONNECTION = 'Su dispositivo no tiene conexión de Internet, favor de revisar y volver a intentar.';
 
   protected user: User;
 
-  private USER_STORAGE_ID = 'APP_NAME.APIService.User';
+  private USER_STORAGE_ID = 'BaseApp.APIService.User';
 
   constructor(
     protected http: Http,
@@ -55,12 +58,6 @@ export class APIService extends AbstractAPIService {
       let user = new User(userData);
       this.setUser(user);
     }
-  }
-
-  registerUser(userRegistration: UserRegistration, onSuccess: (user: User) => void, onError?: (error: string, response?: any) => void) {
-    this.create<User>('appuser', userRegistration, (user: User) => {
-      onSuccess(user);
-    }, onError);
   }
 
   logout() {
@@ -89,7 +86,7 @@ export class APIService extends AbstractAPIService {
 
   setUser(data: Object) {
     Util.store(this.USER_STORAGE_ID, data);
-    this.user = Object.assign(new Employee, data);
+    this.user = Object.assign(new User, data);
     this.setInternalUser(this.user);
     console.log('[APIService] User: ', this.user);
   }
