@@ -816,8 +816,8 @@ export var Util = {
 		window.location.href = "mailto:" + address + (params.length != 0 ? ("?" + params.join("&")) : "");
 	},
 
- 	geocode: function(address, success, error, apiKey){ // Requires jQuery
- 		var url = 'http://maps.googleapis.com/maps/api/geocode/json?sensor=false';
+ 	geocode: function(address: string, success: (position: Object, address?: string, results?: any, response?: any) => void, error: (response?: any) => void, apiKey: string){ // Requires jQuery
+ 		var url = 'https://maps.googleapis.com/maps/api/geocode/json?sensor=false';
 		if(apiKey) url += '&key=' + apiKey;
 
  		(window['jQuery'] || window['$']).ajax({
@@ -834,14 +834,14 @@ export var Util = {
 	 						longitude: point.geometry.location.lng
 	 					};
 
-	 					success.apply(response, [response, position, point.formatted_address, response.results]);
+	 					success(position, point.formatted_address, response.results, response);
 	 				}
 	 				else{
-	 					if(error) error.call(response);
+	 					if(error) error(response);
 	 				}
 	 			}
 	 			else{
-	 				if(error) error.call(response);
+	 				if(error) error(response);
 	 			}
 	 		},
 	 		error: function(){
@@ -1176,13 +1176,12 @@ export var Util = {
 
 	    return new Promise((resolve: (s3FileUrl: string) => void, reject: (error: string) => void) => {
 			Util.resolveFileURL(localFileUrl, (fileEntry) => {
-				let extension = Util.getFileExtension(localFileUrl);
 				let s3FileUrl = `https://${bucketName}.s3.amazonaws.com/${saveAsFilename}`;
 				
 				Util.readBinaryFile(fileEntry, (blob) => {
 					console.log('[Util.uploadToAmazonS3] Uploading file: ' + localFileUrl);
 					
-					this.s3.upload({
+					s3.upload({
 						Bucket: this.AWS_S3_BUCKET,
 						Key: saveAsFilename,
 						Body: blob,
