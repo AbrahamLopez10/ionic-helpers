@@ -82,6 +82,8 @@ export class APIRequestOptions {
   useFastCache: boolean = false;
   showLoader: boolean = true;
   showErrors: boolean = true;
+  loaderDisplay: string = null;
+  fastCacheMaxAge: number = null;
 
   constructor(data?: Object) {
     if(data){
@@ -249,7 +251,7 @@ export abstract class AbstractAPIService {
       if(options.useFastCache && cachedResult){
         let age = (Util.getTimestamp() - cachedResult.timestamp) / 60;
 
-        if(age <= this.FAST_CACHE_MAX_AGE){
+        if(age <= (options.fastCacheMaxAge || this.FAST_CACHE_MAX_AGE)){
           this.handleSuccess(cachedResult.data, onSuccess);
           return;
         }
@@ -257,7 +259,7 @@ export abstract class AbstractAPIService {
     }
 
     let loader;
-    if(options.showLoader) loader = UI.loader(this.loadingCtrl);
+    if(options.showLoader) loader = UI.loader(this.loadingCtrl, options.loaderDisplay);
 
     this.http.get(this.getEndpointUrl(endpoint), {
       search: this.getParams(params),
@@ -292,7 +294,7 @@ export abstract class AbstractAPIService {
     options = new APIRequestOptions(options);
 
     let loader;
-    if(options.showLoader) loader = UI.loader(this.loadingCtrl);
+    if(options.showLoader) loader = UI.loader(this.loadingCtrl, options.loaderDisplay);
 
     this.http.post(this.getEndpointUrl(endpoint), this.getParams(params), {
       headers: new Headers(headers)
