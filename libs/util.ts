@@ -21,7 +21,7 @@ export var Util = {
 	_geolocationCancelled: false,
 	_geolocationMaskLockId: 'getGeoLocation',
 	_fileSystemInstance: null,
-	_language: 'spanish',
+	_language: 'es',
 
 	extend: function(object: Object, extendWith: Object): Object {
 		let newObject = {};
@@ -623,7 +623,7 @@ export var Util = {
 			   curr_hour = curr_hour - 12;
 
 			var curr_min = date.getMinutes();
-			return (Util.DateTime.twoDigits(curr_hour) + ":" + Util.DateTime.twoDigits(curr_min) + " " + meridian);
+			return (curr_hour + ":" + Util.DateTime.twoDigits(curr_min) + " " + meridian);
 		},
 
 		getFriendlyDateTime: function(date: any, shortDate?: boolean, includeWeekDay?: boolean){
@@ -1166,7 +1166,7 @@ export var Util = {
 		window.open(url, '_system');
 	},
 
-	uploadToAmazonS3: function(accessKeyId: string, secretAccessKey: string, awsRegion: string, bucketName: string, localFileUrl: string, saveAsFilename: string): Promise<string>{
+	uploadToAmazonS3: function(accessKeyId: string, secretAccessKey: string, awsRegion: string, bucketName: string, localFileUrl: string, saveAsFilename: string, deleteLocalFileAfterUpload: boolean = true): Promise<string>{
 		let s3 = new AWS.S3({
 			accessKeyId: accessKeyId,
 			secretAccessKey: secretAccessKey,
@@ -1191,6 +1191,7 @@ export var Util = {
 					}).send((err, data) => {
 						if(!err){
 							console.info('[Util.uploadToAmazonS3] File "' + saveAsFilename + '" uploaded successfully.');
+							if(deleteLocalFileAfterUpload) Util.deleteFile(fileEntry);
 							resolve(s3FileUrl);
 						} else {
 							console.warn('[Util.uploadToAmazonS3] Error occured when uploading file "' + saveAsFilename + '":', err);

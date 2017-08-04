@@ -84,7 +84,7 @@ export abstract class AbstractQueue<T> {
     await this.api.setCacheItem(this.storageKey, queueJson);
   }
 
-  find(key, value) {
+  find(key, value): T {
     for(let item of this.items){
       if(item[key] === value){
         return item;
@@ -92,6 +92,18 @@ export abstract class AbstractQueue<T> {
     }
 
     return null;
+  }
+
+  findAll(key, value): T[] {
+    let matches: T[] = [];
+
+    for(let item of this.items){
+      if(item[key] === value){
+        matches.push(item);
+      }
+    }
+
+    return matches;
   }
 
   getItems(byRef: boolean = false) {

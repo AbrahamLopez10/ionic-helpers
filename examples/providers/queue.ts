@@ -13,11 +13,11 @@ export class Queue extends AbstractQueue<MODEL> {
   }
 
   process() {
-    let photo = this.peek(); // Obtain the item
+    let item = this.peek(); // Obtain the item
     
     // Process the item here
 
-    photo.pop(); // Remove the item
+    this.pop(); // Remove the item
   }
 }
 */

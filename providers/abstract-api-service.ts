@@ -481,7 +481,7 @@ export abstract class AbstractAPIService {
 
   protected getStorageKey(suffix = '') {
     // Append partial hash of API URL to cache key to make it unique among the same host (mainly for development purposes using localhost)
-    return this.STORAGE_KEY_PREFIX + '.' + sha1(this.API_URL).substr(0, 15) + suffix;
+    return this.STORAGE_KEY_PREFIX + '.' + sha1(this.API_URL).substr(0, 15) + '.' + suffix;
   }
 
   private loadPassword() {
@@ -494,7 +494,7 @@ export abstract class AbstractAPIService {
         console.warn('[AbstractAPIService.loadPassword] Could not load password from secure storage: ', error);
       });
     } else {
-      this.parsePasswordStorageContents(localStorage.getItem(this.getStorageKey('-password')));
+      this.parsePasswordStorageContents(localStorage.getItem(this.getStorageKey('password')));
     }
   }
 
@@ -511,7 +511,7 @@ export abstract class AbstractAPIService {
       });
     } else {
       console.info('[AbstractAPIService.savePassword] Password successfully saved using local storage.');
-      localStorage.setItem(this.getStorageKey('-password'), this.getPasswordStorageContents());
+      localStorage.setItem(this.getStorageKey('password'), this.getPasswordStorageContents());
     }
   }
 
