@@ -643,7 +643,7 @@ export var Util = {
 		},
 
 		toISO: function(d) {
-		    return d.getUTCFullYear() + "-" + Util.DateTime.twoDigits(1 + d.getUTCMonth()) + "-" + Util.DateTime.twoDigits(d.getUTCDate()) + " " + Util.DateTime.twoDigits(d.getUTCHours()) + ":" + Util.DateTime.twoDigits(d.getUTCMinutes()) + ":" + Util.DateTime.twoDigits(d.getUTCSeconds());
+		    return d.getFullYear() + "-" + Util.DateTime.twoDigits(1 + d.getMonth()) + "-" + Util.DateTime.twoDigits(d.getDate()) + " " + Util.DateTime.twoDigits(d.getHours()) + ":" + Util.DateTime.twoDigits(d.getMinutes()) + ":" + Util.DateTime.twoDigits(d.getSeconds());
 		},
 
 		toHMS: function(d) {
