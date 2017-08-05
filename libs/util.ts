@@ -1182,7 +1182,7 @@ export var Util = {
 					console.log('[Util.uploadToAmazonS3] Uploading file: ' + localFileUrl);
 					
 					s3.upload({
-						Bucket: this.AWS_S3_BUCKET,
+						Bucket: bucketName,
 						Key: saveAsFilename,
 						Body: blob,
 						ContentType: Util.getFileMIMEType(localFileUrl)
