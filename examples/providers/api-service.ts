@@ -31,8 +31,6 @@ import { NativeStorage } from '@ionic-native/native-storage';
 export class APIService extends AbstractAPIService {
   protected API_URL: string = '';
   protected API_KEY: string = '';
-  protected ERROR_GENERIC = 'Conexión inestable, por favor revise su acceso a Internet.';
-  protected ERROR_CONNECTION = 'Su dispositivo no tiene conexión de Internet, favor de revisar y volver a intentar.';
 
   protected user: User;
 
