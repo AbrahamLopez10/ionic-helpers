@@ -51,8 +51,8 @@ export class User extends Entity implements UserInterface {
   public username: string;
   public token: string;
   public name: string;
-  public email: string;
-  public phone: string;
+  public email?: string;
+  public phone?: string;
 
   getFirstName(): string {
     if(!this.name) return '';
