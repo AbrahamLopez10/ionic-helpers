@@ -13,6 +13,7 @@ declare var cordova;
 declare var requestFileSystem, webkitRequestFileSystem, resolveLocalFileSystemURL, geolocation;
 declare var LocalFileSystem, TEMPORARY;
 declare var FileEntry, FileTransfer, FileTransferError, Connection;
+declare var AWS;
 
 export var Util = {
 	_imageCacheEnabled: false,
