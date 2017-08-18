@@ -22,7 +22,7 @@ export abstract class AbstractQueue<T> {
   start() {
     this.log('Started');
 
-    this.timer = setInterval(() => {
+    this.timer = window.setInterval(() => {
       if(this.items.length != 0){
         this.log('Processing...'); 
         this.process();
