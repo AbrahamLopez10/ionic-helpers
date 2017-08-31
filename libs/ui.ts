@@ -271,13 +271,13 @@ export var UI = {
 		if(!options) options = {};
 
 		var toast = toastController.create({
-          message: message,
-          position: (options.position || 'bottom'),
-          cssClass: (options.cssClass || 'notification-toast'),
-          showCloseButton: (options.showCloseButton !== undefined ? options.showCloseButton : true),
-          closeButtonText: (options.closeButtonText || this.getLanguageString('OK')),
-          dismissOnPageChange: (options.dismissOnPageChange !== undefined ? options.dismissOnPageChange : false)
-        });
+      message: message,
+      position: (options.position || 'bottom'),
+      cssClass: (options.cssClass || 'notification-toast'),
+      showCloseButton: (options.showCloseButton !== undefined ? options.showCloseButton : true),
+      closeButtonText: (options.closeButtonText || this.getLanguageString('OK')),
+      dismissOnPageChange: (options.dismissOnPageChange !== undefined ? options.dismissOnPageChange : false)
+    });
 
 		toast.present();
 
