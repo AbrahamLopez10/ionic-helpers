@@ -7,7 +7,7 @@ export abstract class AbstractQueue<T> {
   protected items: T[] = [];
   protected T_Class: any;
   private storageKey: string;
-  private timer: number;
+  private timer: any;
 
   protected INTERVAL = 5000;
 
