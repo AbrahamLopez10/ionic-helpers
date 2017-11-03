@@ -603,7 +603,7 @@ export var Util = {
 				if(includeWeekDay){
 					var weekDayName = Util.DateTime.WEEK_DAY_NAMES[Util._language][date.getDay()];
 					if(shortDate) weekDayName = weekDayName.substr(0, 3);
-					friendlyDate = weekDayName + ", " + friendlyDate;
+					friendlyDate = weekDayName + " " + friendlyDate;
 				}
 				return friendlyDate;
 			}
