@@ -603,7 +603,7 @@ export var Util = {
 				if(includeWeekDay){
 					var weekDayName = Util.DateTime.WEEK_DAY_NAMES[Util._language][date.getDay()];
 					if(shortDate) weekDayName = weekDayName.substr(0, 3);
-					friendlyDate = weekDayName + ", " + friendlyDate;
+					friendlyDate = weekDayName + " " + friendlyDate;
 				}
 				return friendlyDate;
 			}
@@ -767,7 +767,11 @@ export var Util = {
 	    return (navigator.userAgent.match(/(iphone|ipad|ipod)/i) ? true : false);
 	},
 
-	openURL: function(url, options?){
+	openURL: function(url){ // Uses system browser
+		window.open(url, '_system');
+	},
+
+	viewURL: function(url, options?){ // Uses in-app browser
 		if(!options) options = {};
 		var target = (this.oniOSDevice() || url.indexOf('http') == 0) ? '_blank' : '_system';
 		window.open(url, target, (options || 'closebuttoncaption=' + options.closeButtonCaption + ',location=no'));
