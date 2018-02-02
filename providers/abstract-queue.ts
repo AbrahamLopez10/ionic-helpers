@@ -38,8 +38,16 @@ export abstract class AbstractQueue<T> {
   }
 
   init() {
+    if(window['cordova'] || window.location.href.indexOf('localhost') != -1){
+      if(window['cordova']) console.log('[AbstractQueue.init] Cordova ready!');
       this.load();
       this.start();
+    } else {
+      setTimeout(() => {
+        console.warn('[AbstractQueue.init] Cordova not ready, retrying shortly...');
+        this.init();
+      }, 1000);
+    }
   }
 
   log(...params) {
