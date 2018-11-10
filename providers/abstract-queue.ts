@@ -17,7 +17,11 @@ export abstract class AbstractQueue<T> {
     this.log('Instantiated');
   }
 
-  abstract process(): void;
+  protected abstract process(): void;
+
+  protected filter(items: T[]): T[] { // Override
+    return items;
+  }
 
   start() {
     this.log('Started');
@@ -75,7 +79,9 @@ export abstract class AbstractQueue<T> {
                   this.items = queue;
               }
 
-              this.log('Loaded: ', queue);
+              this.items = this.filter(this.items);
+
+              this.log('Loaded: ', this.items);
           } else {
             this.log('Retrieved queue data is invalid: ', queueJson); 
           }
@@ -114,11 +120,11 @@ export abstract class AbstractQueue<T> {
     return matches;
   }
 
-  getItems(byRef: boolean = false) {
+  getItems(byRef: boolean = false): T[] {
       return byRef ? this.items : this.items.slice();
   }
 
-  getCount() {
+  getCount(): number {
     return this.items.length;
   }
 
