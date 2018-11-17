@@ -460,13 +460,22 @@ export var Util = {
 		else console.warn('[Util.setNoBackupiOSAttribute] entry.setMetadata() method is not available.');
 	},
 
-	getFileExtension: function(fileName){
-		if(FileEntry && fileName instanceof FileEntry){
-			fileName = fileName.toURL();
+	getFileExtension: function(filePath){
+		if(window['FileEntry'] && filePath instanceof FileEntry){
+			filePath = filePath.toURL();
 		}
 
-		fileName = fileName.split('.');
-		return fileName.length > 1 ? fileName.pop().toLowerCase() : '';
+		filePath = filePath.split('.');
+		return filePath.length > 1 ? filePath.pop().toLowerCase() : '';
+	},
+
+	getFileName: function(filePath){
+		if(window['FileEntry'] && filePath instanceof FileEntry){
+			filePath = filePath.toURL();
+		}
+
+		filePath = filePath.split('/');
+		return filePath.length > 1 ? filePath.pop() : '';
 	},
 
 	getFileMIMEType: function(fileName){
@@ -1171,7 +1180,7 @@ export var Util = {
 		window.open(url, '_system');
 	},
 
-	uploadToAmazonS3: function(accessKeyId: string, secretAccessKey: string, awsRegion: string, bucketName: string, localFileUrl: string, saveAsFilename: string, deleteLocalFileAfterUpload: boolean = true): Promise<string>{
+	uploadToAmazonS3: function(accessKeyId: string, secretAccessKey: string, awsRegion: string, bucketName: string, localFileUrl: string, saveAsFilename: string, deleteLocalFileAfterUpload: boolean = true): Promise<string> {
 		let s3 = new AWS.S3({
 			accessKeyId: accessKeyId,
 			secretAccessKey: secretAccessKey,
@@ -1210,6 +1219,36 @@ export var Util = {
 			}, (error) => {
 				console.warn('[Util.uploadToAmazonS3] Local file URL could not be resolved.');
 				reject(error);
+			});
+		});
+	},
+
+	takePhoto: function(saveAsFilename: string): Promise<string> {
+		return new Promise((resolve: (localFileUrl: string) => void, reject: (error: Error) => void) => {
+			(<any>navigator).camera.getPicture((fileURL) => {
+				Util.resolveFileURL(fileURL, (fileEntry) => {
+					// Move the photo to a separate permanent location as the Camera plugin stores it as a temporary file
+					Util.readBinaryFile(fileEntry, (blob) => {
+						Util.writeBinaryFile(saveAsFilename, blob, (newFileEntry) => {
+							resolve(newFileEntry.toURL());
+						}, function(){
+							reject(new Error('The photo could not be saved.'));
+						});
+					}, function(){
+						reject(new Error('The photo could not be loaded.'));
+					});
+				}, function(){
+					reject(new Error('The photo file could not be found.'));
+				});
+			}, function(error){
+				reject(new Error('Camera not available.'));
+				console.error(error);
+			}, {
+				quality: 80,
+				targetWidth: 1200,
+				targetHeight: 1200,
+				allowEdit: false,
+				correctOrientation: true
 			});
 		});
 	}
