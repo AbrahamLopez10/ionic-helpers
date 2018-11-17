@@ -286,6 +286,16 @@ export abstract class AbstractAPIService {
     });
   }
 
+  getAsync<T>(endpoint: string, params: Object, options?: APIRequestOptions, headers: Object = {}): Promise<T> {
+    return new Promise((resolve: (response: T) => void, reject: (error) => void) => {
+      this.get<T>(endpoint, params, (response, _) => {
+        resolve(response as T);
+      }, (error) => {
+        reject(error);
+      }, options, headers);
+    });
+  }
+
   post(endpoint: string, params: Object, onSuccess?: (response?: any) => void, onError?: (error: string, response?: any) => void, options?: APIRequestOptions, headers: Object = {}): void {
     if(!this.API_URL) throw new Error('[AbstractAPIService.post] Please set a value for API_URL to make API requests.');
 
@@ -316,6 +326,16 @@ export abstract class AbstractAPIService {
     }).catch((error) => {
       if(loader) loader.dismiss().catch(() => {});
       this.handleError(options, error, onError);
+    });
+  }
+
+  postAsync<T>(endpoint: string, params: Object, options?: APIRequestOptions, headers: Object = {}): Promise<T> {
+    return new Promise((resolve: (response: T) => void, reject: (error) => void) => {
+      this.post(endpoint, params, (response) => {
+        resolve(response as T);
+      }, (error) => {
+        reject(error);
+      }, options, headers);
     });
   }
 
