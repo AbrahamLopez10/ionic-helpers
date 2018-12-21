@@ -1091,6 +1091,11 @@ export var Util = {
 		return input.replace(/<\/?[^>]+>/g, "");
 	},
 
+	convertNewLinesToHtmlBreaks: function(input){
+		if(!input) return "";
+		return input.replace(/\n/g, "<br />");
+	},
+
 	getGeoLocation: function(onSuccess: (latitude: number, longitude: number) => void, onError?: Function, config?: any, hideLoader: boolean = false, hideError: boolean = false, onCancel?: Function){
 		var self = this;
 
