@@ -253,7 +253,7 @@ export var Util = {
 
 				reader.onloadend = function(){
 					console.log('[Util.readBinaryFile] success');
-					var blob = new Blob([new Uint8Array(this.result)], {type: Util.getFileMIMEType(relativeFilePathOrFileEntry)});
+					var blob = new Blob([new Uint8Array(this.result as ArrayBuffer)], {type: Util.getFileMIMEType(relativeFilePathOrFileEntry)});
 					onReady.call(Util, blob, fileEntry);
 				};
 
