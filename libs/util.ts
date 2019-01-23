@@ -584,9 +584,9 @@ export var Util = {
 			]
 		},
 
-		WEEK_DAY_NAMES: {
-			spanish: ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"],
-			english: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+		WEEKDAY_NAMES: {
+			es: ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"],
+			en: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
 		},
 
 		clone: function(d) {
@@ -610,7 +610,7 @@ export var Util = {
 				var monthName = shortDate ? Util.DateTime.getShortMonthName(date) : Util.DateTime.getMonthName(date);
 				var friendlyDate = monthName + " " + date.getDate() + ", " + date.getFullYear();
 				if(includeWeekDay){
-					var weekDayName = Util.DateTime.WEEK_DAY_NAMES[Util._language][date.getDay()];
+					var weekDayName = Util.DateTime.WEEKDAY_NAMES[Util._language][date.getDay()];
 					if(shortDate) weekDayName = weekDayName.substr(0, 3);
 					friendlyDate = weekDayName + " " + friendlyDate;
 				}
