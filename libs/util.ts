@@ -756,8 +756,16 @@ export var Util = {
 	    }
  	},
 
- 	isEmail: function(input){
+ 	isEmailAddress: function(input: string): boolean {
 		return (/^[a-zA-Z0-9_\-\.]+@[a-zA-Z0-9\-]+\.[a-zA-Z0-9\-\.]+$/g).test(input);
+	},
+
+	isEmail: function(input: string): boolean { // DEPRECATED
+		return Util.isEmailAddress(input);
+	},
+
+	isPhoneNumber: function(sValue: string): boolean {
+		return (/^[0-9\-\(\) ]+$/).test(sValue);
 	},
 
 	isNumeric: function(sValue){
