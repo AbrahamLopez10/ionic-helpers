@@ -791,7 +791,7 @@ export var Util = {
 	viewURL: function(url, options?){ // Uses in-app browser
 		if(!options) options = {};
 		var target = (this.oniOSDevice() || url.indexOf('http') == 0) ? '_blank' : '_system';
-		window.open(url, target, (options || 'closebuttoncaption=' + options.closeButtonCaption + ',location=no'));
+		window.open(url, target, ('closebuttoncaption=' + (options.closeButtonCaption || 'Close') + ',location=' + (options.location || 'no')));
 	},
 
 	openFile: function(filePath){
