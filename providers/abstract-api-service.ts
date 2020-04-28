@@ -1,3 +1,5 @@
+import { SecureStorage, SecureStorageObject } from '@ionic-native/secure-storage';
+import { NativeStorage } from '@ionic-native/native-storage';
 /**
  * @name          AbstractAPIService
  * @description   Base class for an API service provider in Ionic v3+ applications, using a GET/POST based, CRUD-oriented custom ruleset for an HTTP JSON API (TODO: pending documentation for custom ruleset)
@@ -132,8 +134,8 @@ export abstract class AbstractAPIService {
   protected alertCtrl: AlertController;
   protected loadingCtrl: LoadingController;
   protected toastCtrl: ToastController;
-  protected nativeStorage: any;
-  protected secureStorageObject: any;
+  protected nativeStorage: NativeStorage;
+  protected secureStorageObject: SecureStorageObject;
 
   protected ERROR_GENERIC = 'Sorry, an error ocurred, please try again later.';
   protected ERROR_CONNECTION = 'Sorry, your device is offline. Please check your Internet connection and try again.';
@@ -178,10 +180,34 @@ export abstract class AbstractAPIService {
     }, 1000);
   }
 
-  init() {
-    this._ready = true;
+  init(nativeStorage: NativeStorage, secureStorage?: SecureStorage) {
+    this.nativeStorage = nativeStorage;
+
     this.loadCache();
-    this.loadPassword();
+
+    if(secureStorage){
+      this.useSecureStorage(secureStorage, () => this.loadPassword());
+    }
+    else{
+      this.loadPassword();
+    }
+
+    this._ready = true;
+  }
+
+  private useSecureStorage(secureStorage: SecureStorage, callback: () => void) {
+    if(window['cordova']){
+      secureStorage.create(this.getStorageKey()).then((secureStorageObject) => {
+        console.info('[AbstractAPIService.useSecureStorage] Using secure storage.');
+        this.secureStorageObject = secureStorageObject;
+        if(callback) callback();
+      }).catch(error => {
+        console.error('[AbstractAPIService.useSecureStorage] Could not use secure storage: ', error);
+      });
+    } else {
+      console.warn('[AbstractAPIService.useSecureStorage] Using local storage as Cordova is not available.');
+      if(callback) callback();
+    }
   }
 
   getAppVersion(){
@@ -190,27 +216,6 @@ export abstract class AbstractAPIService {
 
   getEndpointUrl(endpoint: string): string {
     return this.API_URL + endpoint;
-  }
-
-  useNativeStorage(nativeStorage) {
-    this.nativeStorage = nativeStorage;
-  }
-
-  useSecureStorage(secureStorage) {
-    if(window['cordova']){
-      console.info('[AbstractAPIService.useSecureStorage] Using secure storage.');
-      secureStorage.create(this.getStorageKey()).then((secureStorageObject) => {
-        this.secureStorageObject = secureStorageObject;
-        this.onSecureStorageUsed();
-      });
-    } else {
-      console.info('[AbstractAPIService.useSecureStorage] Using local storage as Cordova is not available.');
-    }
-  }
-
-  onSecureStorageUsed() {
-    this.loadCache();
-    this.loadPassword();
   }
 
   get<T>(endpoint: string, params: Object, onSuccess: (response: any, results?: T[]) => void, onError?: (error: string, response?: any) => void, options?: APIRequestOptions, headers: Object = {}): void {
@@ -508,30 +513,60 @@ export abstract class AbstractAPIService {
     if(this.secureStorageObject){
       this.secureStorageObject.get('password').then((jsonData) => {
         if(this.parsePasswordStorageContents(jsonData)){
-          console.log('[AbstractAPIService.loadPassword] Password successfully retrieved.');
+          console.log('[AbstractAPIService.loadPassword] Password successfully loaded from secure storage.');
         }
       }, (error) => {
         console.warn('[AbstractAPIService.loadPassword] Could not load password from secure storage: ', error);
       });
     } else {
-      this.parsePasswordStorageContents(localStorage.getItem(this.getStorageKey('password')));
+      let key = this.getStorageKey('password');
+
+      if(this.nativeStorage && window['cordova']){
+        this.nativeStorage.getItem(key).then(jsonData => {
+          if(this.parsePasswordStorageContents(jsonData)){
+            console.log('[AbstractAPIService.loadPassword] Password successfully loaded from native storage.');
+          }
+        })
+        .catch((error) => {
+          console.warn('[AbstractAPIService.loadPassword] Could not load password from native storage: ', error);
+        });
+      }
+      else{
+        if(this.parsePasswordStorageContents(localStorage.getItem(key))){
+          console.log('[AbstractAPIService.loadPassword] Password successfully retrieved from local storage.');
+        }
+      }
     }
   }
 
-  savePassword(password: string) {
+  savePassword(password: string, onError: (error: string) => void = null) {
     this._password = password;
 
     console.log('[AbstractAPIService.savePassword] Saving password...');
 
     if(this.secureStorageObject){
       this.secureStorageObject.set('password', this.getPasswordStorageContents()).then(() => {
-        console.info('[AbstractAPIService.savePassword] Password successfully saved using secure storage.');
+        console.info('[AbstractAPIService.savePassword] Password successfully saved in secure storage.');
       }, (error) => {
-        console.error('[AbstractAPIService.savePassword] Could not save password into secure storage: ', error);
+        console.error('[AbstractAPIService.savePassword] Could not save password in secure storage: ', error);
+        if(onError) onError(error);
       });
     } else {
-      console.info('[AbstractAPIService.savePassword] Password successfully saved using local storage.');
-      localStorage.setItem(this.getStorageKey('password'), this.getPasswordStorageContents());
+      let key = this.getStorageKey('password');
+      let jsonData = this.getPasswordStorageContents();
+
+      if(this.nativeStorage && window['cordova']){
+        this.nativeStorage.setItem(key, jsonData).then(() => {
+          console.info('[AbstractAPIService.savePassword] Password successfully saved in native storage.');
+        }, (error) => {
+          console.error('[AbstractAPIService.savePassword] Could not save password in native storage: ', error);
+          if(onError) onError(error);
+        });
+      }
+      else{
+        localStorage.setItem(key, jsonData);
+        console.info('[AbstractAPIService.savePassword] Password successfully saved in local storage.');
+      }
     }
   }
 
@@ -545,8 +580,10 @@ export abstract class AbstractAPIService {
 
       if(data){
         if(data.expiration && data.expiration > Util.getTimestamp()){
-          this._password = data.password;
-          return true;
+          if(data.password){
+            this._password = data.password;
+            return true;
+          } else console.error('[AbstractAPIService.parsePasswordStorageContents] Stored password is blank.');
         } else console.info('[AbstractAPIService.parsePasswordStorageContents] Password has expired.');
       } else console.warn('[AbstractAPIService.parsePasswordStorageContents] Invalid JSON data: ', jsonData);
     } else console.log('[AbstractAPIService.parsePasswordStorageContents] Data is empty.');
@@ -719,8 +756,14 @@ export abstract class AbstractAPIService {
           console.log('[AbstractAPIService.getCacheItem] Item retrieved: ' + key);
           resolve(value);
         }, (error) => {
-          console.warn('[AbstractAPIService.getCacheItem] Error: ', error);
-          reject(error);
+          if(error.code == 2){ // NativeStorageError.ITEM_NOT_FOUND
+            console.info('[AbstractAPIService.getCacheItem] Item not found: ' + key);
+            resolve(null);
+          }
+          else{
+            console.warn('[AbstractAPIService.getCacheItem] Error: ', error);
+            reject(error);
+          }
         });
       } else {
         console.log('[AbstractAPIService.getCacheItem] Using local storage. Item retrieved: ' + key);
