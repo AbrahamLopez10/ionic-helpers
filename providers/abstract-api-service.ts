@@ -1,5 +1,3 @@
-import { SecureStorage, SecureStorageObject } from '@ionic-native/secure-storage';
-import { NativeStorage } from '@ionic-native/native-storage';
 /**
  * @name          AbstractAPIService
  * @description   Base class for an API service provider in Ionic v3+ applications, using a GET/POST based, CRUD-oriented custom ruleset for an HTTP JSON API (TODO: pending documentation for custom ruleset)
@@ -17,12 +15,12 @@ declare var cordova;
 
 export class Entity {
   constructor(data?: Object) {
-    if(data){
-      try{
-        for(var key in data){
+    if (data) {
+      try {
+        for (var key in data) {
           this[key] = data[key];
         }
-      } catch(e){
+      } catch (e) {
         console.warn(e);
       }
     }
@@ -31,7 +29,7 @@ export class Entity {
   asPlainObject() {
     let object: any = {};
 
-    for(var key in this){
+    for (var key in this) {
       object[key] = this[key];
     }
 
@@ -57,11 +55,11 @@ export class User extends Entity implements UserInterface {
   public phone?: string;
 
   getFirstName(): string {
-    if(!this.name) return '';
+    if (!this.name) return '';
 
     let name = this.name.split(' ');
 
-    if(name.length != 0){
+    if (name.length != 0) {
       let firstName = name[0].toLowerCase();
       firstName = firstName.charAt(0).toUpperCase() + firstName.substr(1, firstName.length);
       return firstName;
@@ -88,8 +86,8 @@ export class APIRequestOptions {
   fastCacheMaxAge: number = null;
 
   constructor(data?: Object) {
-    if(data){
-      for(var key in data){
+    if (data) {
+      for (var key in data) {
         this[key] = data[key];
       }
     }
@@ -117,25 +115,25 @@ class APIQueryEncoder extends QueryEncoder {
   where + signs are encoded as spaces on the XHR request.
   Reference: https://github.com/angular/angular/issues/11058 */
   encodeKey(k: string): string {
-      k = super.encodeKey(k);
-      return k.replace(/\+/gi, '%2B');
+    k = super.encodeKey(k);
+    return k.replace(/\+/gi, '%2B');
   }
   encodeValue(v: string): string {
-      v = super.encodeKey(v);
-      return v.replace(/\+/gi, '%2B');
+    v = super.encodeKey(v);
+    return v.replace(/\+/gi, '%2B');
   }
 }
 
 export abstract class AbstractAPIService {
   protected API_URL: string = '';
   protected API_KEY: string = '';
-  
+
   protected http: Http;
   protected alertCtrl: AlertController;
   protected loadingCtrl: LoadingController;
   protected toastCtrl: ToastController;
-  protected nativeStorage: NativeStorage;
-  protected secureStorageObject: SecureStorageObject;
+  protected nativeStorage: any;
+  protected secureStorageObject: any;
 
   protected ERROR_GENERIC = 'Sorry, an error ocurred, please try again later.';
   protected ERROR_CONNECTION = 'Sorry, your device is offline. Please check your Internet connection and try again.';
@@ -167,50 +165,26 @@ export abstract class AbstractAPIService {
   */
 
   constructor() {
-    if(window['cordova'] && cordova.getAppVersion){
+    if (window['cordova'] && cordova.getAppVersion) {
       cordova.getAppVersion.getVersionNumber((version) => {
         this._appVersion = version;
       });
     }
 
     setTimeout(() => {
-      if(!this._ready){
+      if (!this._ready) {
         throw new Error('[AbstractAPIService] this.init() must be called within the APIService implementation');
       }
     }, 1000);
   }
 
-  init(nativeStorage: NativeStorage, secureStorage?: SecureStorage) {
-    this.nativeStorage = nativeStorage;
-
-    this.loadCache();
-
-    if(secureStorage){
-      this.useSecureStorage(secureStorage, () => this.loadPassword());
-    }
-    else{
-      this.loadPassword();
-    }
-
+  init() {
     this._ready = true;
+    this.loadCache();
+    this.loadPassword();
   }
 
-  private useSecureStorage(secureStorage: SecureStorage, callback: () => void) {
-    if(window['cordova']){
-      secureStorage.create(this.getStorageKey()).then((secureStorageObject) => {
-        console.info('[AbstractAPIService.useSecureStorage] Using secure storage.');
-        this.secureStorageObject = secureStorageObject;
-        if(callback) callback();
-      }).catch(error => {
-        console.error('[AbstractAPIService.useSecureStorage] Could not use secure storage: ', error);
-      });
-    } else {
-      console.warn('[AbstractAPIService.useSecureStorage] Using local storage as Cordova is not available.');
-      if(callback) callback();
-    }
-  }
-
-  getAppVersion(){
+  getAppVersion() {
     return this._appVersion;
   }
 
@@ -218,45 +192,67 @@ export abstract class AbstractAPIService {
     return this.API_URL + endpoint;
   }
 
-  get<T>(endpoint: string, params: Object, onSuccess: (response: any, results?: T[]) => void, onError?: (error: string, response?: any) => void, options?: APIRequestOptions, headers: Object = {}): void {
-    if(!this.API_URL) throw new Error('[AbstractAPIService.get] Please set a value for API_URL to make API requests.');
+  useNativeStorage(nativeStorage) {
+    this.nativeStorage = nativeStorage;
+    this.onSecureStorageUsed();
+  }
 
-    if(!params) params = {};
-    
+  useSecureStorage(secureStorage) {
+    if (window['cordova']) {
+      console.info('[AbstractAPIService.useSecureStorage] Using secure storage.');
+      secureStorage.create(this.getStorageKey()).then((secureStorageObject) => {
+        this.secureStorageObject = secureStorageObject;
+        this.onSecureStorageUsed();
+      });
+    } else {
+      console.info('[AbstractAPIService.useSecureStorage] Using local storage as Cordova is not available.');
+    }
+  }
+
+  onSecureStorageUsed() {
+    this.loadCache();
+    this.loadPassword();
+  }
+
+  get<T>(endpoint: string, params: Object, onSuccess: (response: any, results?: T[]) => void, onError?: (error: string, response?: any) => void, options?: APIRequestOptions, headers: Object = {}): void {
+    if (!this.API_URL) throw new Error('[AbstractAPIService.get] Please set a value for API_URL to make API requests.');
+
+    if (!params) params = {};
+
     options = new APIRequestOptions(options);
 
-    if(options.useCache){
+    if (options.useCache) {
       options.useFastCache = true;
       options.useOfflineCache = true;
     }
 
-    if(options.useFastCache || options.useOfflineCache){
+    if (options.useFastCache || options.useOfflineCache) {
       let cachedResult = this.getCacheResult(endpoint, params);
 
-      if(!Util.isOnline()){
-        if(options.useOfflineCache){
-          if(cachedResult){
+      if (!Util.isOnline()) {
+        if (options.useOfflineCache) {
+          if (cachedResult) {
             UI.toast(this.toastCtrl, this.MESSAGE_OFFLINE, {
               duration: 3000
             });
             this.handleSuccess(cachedResult.data, onSuccess);
             return;
           }
-          else{
+          else {
             this.handleError(options, this.ERROR_CONNECTION, onError);
             return;
           }
         }
-        else{
+        else {
           this.handleError(options, this.ERROR_CONNECTION, onError);
           return;
         }
       }
 
-      if(options.useFastCache && cachedResult){
+      if (options.useFastCache && cachedResult) {
         let age = (Util.getTimestamp() - cachedResult.timestamp) / 60;
 
-        if(age <= (options.fastCacheMaxAge || this.FAST_CACHE_MAX_AGE)){
+        if (age <= (options.fastCacheMaxAge || this.FAST_CACHE_MAX_AGE)) {
           this.handleSuccess(cachedResult.data, onSuccess);
           return;
         }
@@ -264,88 +260,68 @@ export abstract class AbstractAPIService {
     }
 
     let loader;
-    if(options.showLoader) loader = UI.loader(this.loadingCtrl, options.loaderDisplay);
+    if (options.showLoader) loader = UI.loader(this.loadingCtrl, options.loaderDisplay);
 
     this.http.get(this.getEndpointUrl(endpoint), {
       search: this.getParams(params),
       headers: new Headers(headers)
     }).toPromise()
-    .then((response) => {
-      if(loader) loader.dismiss().catch(() => {});
-      
-      let json = response.json();
+      .then((response) => {
+        if (loader) loader.dismiss().catch(() => { });
 
-      if(json){
-        if(json.status !== undefined && (json.status == 0 || json.status == 'error')){
-          this.handleError(options, json, onError);
-          return;
+        let json = response.json();
+
+        if (json) {
+          if (json.status !== undefined && (json.status == 0 || json.status == 'error')) {
+            this.handleError(options, json, onError);
+            return;
+          }
+
+          this.saveResultInCache(endpoint, params, json);
+          this.handleSuccess(json, onSuccess);
         }
-
-        this.saveResultInCache(endpoint, params, json);
-        this.handleSuccess(json, onSuccess);
-      }
-      else this.handleError(options, json, onError);
-    }).catch((error) => {
-      if(loader) loader.dismiss().catch(() => {});
-      this.handleError(options, error, onError);
-    });
-  }
-
-  getAsync<T>(endpoint: string, params: Object, options?: APIRequestOptions, headers: Object = {}): Promise<T> {
-    return new Promise((resolve: (response: T) => void, reject: (error) => void) => {
-      this.get<T>(endpoint, params, (response, _) => {
-        resolve(response as T);
-      }, (error) => {
-        reject(error);
-      }, options, headers);
-    });
+        else this.handleError(options, json, onError);
+      }).catch((error) => {
+        if (loader) loader.dismiss().catch(() => { });
+        this.handleError(options, error, onError);
+      });
   }
 
   post(endpoint: string, params: Object, onSuccess?: (response?: any) => void, onError?: (error: string, response?: any) => void, options?: APIRequestOptions, headers: Object = {}): void {
-    if(!this.API_URL) throw new Error('[AbstractAPIService.post] Please set a value for API_URL to make API requests.');
+    if (!this.API_URL) throw new Error('[AbstractAPIService.post] Please set a value for API_URL to make API requests.');
 
-    if(!params) params = {};
-    
+    if (!params) params = {};
+
     options = new APIRequestOptions(options);
 
     let loader;
-    if(options.showLoader) loader = UI.loader(this.loadingCtrl, options.loaderDisplay);
+    if (options.showLoader) loader = UI.loader(this.loadingCtrl, options.loaderDisplay);
 
     this.http.post(this.getEndpointUrl(endpoint), this.getParams(params), {
       headers: new Headers(headers)
     }).toPromise()
-    .then((response) => {
-      if(loader) loader.dismiss().catch(() => {});
-      
-      let json = response.json();
+      .then((response) => {
+        if (loader) loader.dismiss().catch(() => { });
 
-      if(json){
-        if(json.error || (json.status !== undefined && (json.status === 0 || json.status === 'error'))){
-          this.handleError(options, json, onError);
-          return;
+        let json = response.json();
+
+        if (json) {
+          if (json.error || (json.status !== undefined && (json.status === 0 || json.status === 'error'))) {
+            this.handleError(options, json, onError);
+            return;
+          }
+
+          if (onSuccess) this.handleSuccess(json, onSuccess);
         }
-
-        if(onSuccess) this.handleSuccess(json, onSuccess);
-      }
-      else this.handleError(options, json, onError);
-    }).catch((error) => {
-      if(loader) loader.dismiss().catch(() => {});
-      this.handleError(options, error, onError);
-    });
-  }
-
-  postAsync<T>(endpoint: string, params: Object, options?: APIRequestOptions, headers: Object = {}): Promise<T> {
-    return new Promise((resolve: (response: T) => void, reject: (error) => void) => {
-      this.post(endpoint, params, (response) => {
-        resolve(response as T);
-      }, (error) => {
-        reject(error);
-      }, options, headers);
-    });
+        else this.handleError(options, json, onError);
+      }).catch((error) => {
+        if (loader) loader.dismiss().catch(() => { });
+        this.handleError(options, error, onError);
+      });
   }
 
   create<T>(modelName: string, data: Object, onSuccess: (entity?: T) => void, onError?: (error: string, response: any) => void, onCancel?: Function, excludedFields: string[] = ['id'], options?: CRUDRequestOptions) {
-    if(!options){
+    if (!options) {
       options = new CRUDRequestOptions();
     }
 
@@ -358,16 +334,16 @@ export abstract class AbstractAPIService {
         _OWNER_PASSWORD: (this._password || ''),
       };
 
-      if(options.selfOwner){
+      if (options.selfOwner) {
         params._OWNER_ID = 'SELF';
         params._OWNER_TOKEN = 'SELF';
         params._OWNER_PASSWORD = '';
       }
 
-      for(let key in data){
+      for (let key in data) {
         let value = data[key];
 
-        if(value !== null && (!excludedFields || excludedFields.indexOf(key) == -1) && (/string|number|boolean/).test(typeof value)){
+        if (value !== null && (!excludedFields || excludedFields.indexOf(key) == -1) && (/string|number|boolean/).test(typeof value)) {
           params[key] = value;
         }
       }
@@ -380,7 +356,7 @@ export abstract class AbstractAPIService {
       }, options);
     };
 
-    if(options.verifyPassword && !options.selfOwner){
+    if (options.verifyPassword && !options.selfOwner) {
       this.checkPassword(() => {
         doCreate();
       }, onCancel);
@@ -390,13 +366,13 @@ export abstract class AbstractAPIService {
   }
 
   register<T>(modelName: string, data: Object, onSuccess: (entity?: T) => void, onError?: (error: string, response: any) => void, onCancel?: Function, excludedFields: string[] = ['id'], options?: CRUDRequestOptions) {
-    if(!options) options = new CRUDRequestOptions();
+    if (!options) options = new CRUDRequestOptions();
     options.selfOwner = true;
     this.create<T>(modelName, data, onSuccess, onError, onCancel, excludedFields, options);
   }
 
   read<T>(modelName: string, additionalParams: Object, onSuccess: (results: T[]) => void, onError?: (error: string, response?: any) => void, onCancel?: Function, options?: CRUDRequestOptions) {
-    if(options && options.secureReads && !this._password){
+    if (options && options.secureReads && !this._password) {
       this.checkPassword(() => {
         this.read<T>(modelName, additionalParams, onSuccess, onError, null, options);
       }, onCancel, options);
@@ -411,13 +387,13 @@ export abstract class AbstractAPIService {
       _OWNER_TOKEN: user ? user.token : ''
     };
 
-    if(additionalParams){
-      for(var key in additionalParams){
+    if (additionalParams) {
+      for (var key in additionalParams) {
         params[key] = additionalParams[key];
       }
     }
 
-    if(!options){
+    if (!options) {
       options = new CRUDRequestOptions();
     }
 
@@ -439,15 +415,15 @@ export abstract class AbstractAPIService {
         _ENTITY_ID: entityId
       };
 
-      for(let key in data){
+      for (let key in data) {
         let value = data[key];
 
-        if(value !== null && (!excludedFields || excludedFields.indexOf(key) == -1) && (/string|number|boolean/).test(typeof value)){
+        if (value !== null && (!excludedFields || excludedFields.indexOf(key) == -1) && (/string|number|boolean/).test(typeof value)) {
           params[key] = value;
         }
       }
 
-      if(!options){
+      if (!options) {
         options = new CRUDRequestOptions();
       }
 
@@ -464,10 +440,10 @@ export abstract class AbstractAPIService {
     this.checkPassword(() => {
       let user = this.getInternalUser();
 
-      if(!options){
+      if (!options) {
         options = new CRUDRequestOptions();
       }
-      
+
       this.post('delete/' + modelName, {
         _OWNER_ID: user ? user.id : '',
         _OWNER_TOKEN: user ? user.token : '',
@@ -483,11 +459,11 @@ export abstract class AbstractAPIService {
   }
 
   protected onCRUDError(onError: (error: string, response?: any) => void, onCancel: Function, error: string, response: any) {
-    if(response && response.code){
+    if (response && response.code) {
       console.warn('[AbstractAPIService.onCRUDError] Code: ', response.code, ' / Message: ', error);
-      if(onCancel) onCancel();
+      if (onCancel) onCancel();
     }
-    else if(onError) onError(error, response);
+    else if (onError) onError(error, response);
   }
 
   login<T>(modelName: string, username: string, password: string, onSuccess: (user: T) => void, onError?: (error: string, response?: any) => void, options?: APIRequestOptions) {
@@ -510,63 +486,47 @@ export abstract class AbstractAPIService {
   }
 
   private loadPassword() {
-    if(this.secureStorageObject){
+    if (this.secureStorageObject) {
       this.secureStorageObject.get('password').then((jsonData) => {
-        if(this.parsePasswordStorageContents(jsonData)){
-          console.log('[AbstractAPIService.loadPassword] Password successfully loaded from secure storage.');
+        if (this.parsePasswordStorageContents(jsonData)) {
+          console.log('[AbstractAPIService.loadPassword] Password successfully retrieved.');
+        }
+      }, (error) => {
+        console.warn('[AbstractAPIService.loadPassword] Could not load password from secure storage: ', error);
+      });
+    } else if (this.nativeStorage) {
+      this.nativeStorage.getItem('password').then((jsonData) => {
+        if (this.parsePasswordStorageContents(jsonData)) {
+          console.log('[AbstractAPIService.loadPassword] Password successfully retrieved.');
         }
       }, (error) => {
         console.warn('[AbstractAPIService.loadPassword] Could not load password from secure storage: ', error);
       });
     } else {
-      let key = this.getStorageKey('password');
-
-      if(this.nativeStorage && window['cordova']){
-        this.nativeStorage.getItem(key).then(jsonData => {
-          if(this.parsePasswordStorageContents(jsonData)){
-            console.log('[AbstractAPIService.loadPassword] Password successfully loaded from native storage.');
-          }
-        })
-        .catch((error) => {
-          console.warn('[AbstractAPIService.loadPassword] Could not load password from native storage: ', error);
-        });
-      }
-      else{
-        if(this.parsePasswordStorageContents(localStorage.getItem(key))){
-          console.log('[AbstractAPIService.loadPassword] Password successfully retrieved from local storage.');
-        }
-      }
+      this.parsePasswordStorageContents(localStorage.getItem(this.getStorageKey('password')));
     }
   }
 
-  savePassword(password: string, onError: (error: string) => void = null) {
+  savePassword(password: string) {
     this._password = password;
 
     console.log('[AbstractAPIService.savePassword] Saving password...');
 
-    if(this.secureStorageObject){
+    if (this.secureStorageObject) {
       this.secureStorageObject.set('password', this.getPasswordStorageContents()).then(() => {
-        console.info('[AbstractAPIService.savePassword] Password successfully saved in secure storage.');
+        console.info('[AbstractAPIService.savePassword] Password successfully saved using secure storage.');
       }, (error) => {
-        console.error('[AbstractAPIService.savePassword] Could not save password in secure storage: ', error);
-        if(onError) onError(error);
+        console.error('[AbstractAPIService.savePassword] Could not save password into secure storage: ', error);
+      });
+    } else if (this.nativeStorage) {
+      this.nativeStorage.setItem('password', this.getPasswordStorageContents()).then(() => {
+        console.info('[AbstractAPIService.savePassword] Password successfully saved using secure storage.');
+      }, (error) => {
+        console.error('[AbstractAPIService.savePassword] Could not save password into secure storage: ', error);
       });
     } else {
-      let key = this.getStorageKey('password');
-      let jsonData = this.getPasswordStorageContents();
-
-      if(this.nativeStorage && window['cordova']){
-        this.nativeStorage.setItem(key, jsonData).then(() => {
-          console.info('[AbstractAPIService.savePassword] Password successfully saved in native storage.');
-        }, (error) => {
-          console.error('[AbstractAPIService.savePassword] Could not save password in native storage: ', error);
-          if(onError) onError(error);
-        });
-      }
-      else{
-        localStorage.setItem(key, jsonData);
-        console.info('[AbstractAPIService.savePassword] Password successfully saved in local storage.');
-      }
+      console.info('[AbstractAPIService.savePassword] Password successfully saved using local storage.');
+      localStorage.setItem(this.getStorageKey('password'), this.getPasswordStorageContents());
     }
   }
 
@@ -575,15 +535,13 @@ export abstract class AbstractAPIService {
   }
 
   private parsePasswordStorageContents(jsonData: string) {
-    if(jsonData){
+    if (jsonData) {
       let data = Util.parseJSON(jsonData);
 
-      if(data){
-        if(data.expiration && data.expiration > Util.getTimestamp()){
-          if(data.password){
-            this._password = data.password;
-            return true;
-          } else console.error('[AbstractAPIService.parsePasswordStorageContents] Stored password is blank.');
+      if (data) {
+        if (data.expiration && data.expiration > Util.getTimestamp()) {
+          this._password = data.password;
+          return true;
         } else console.info('[AbstractAPIService.parsePasswordStorageContents] Password has expired.');
       } else console.warn('[AbstractAPIService.parsePasswordStorageContents] Invalid JSON data: ', jsonData);
     } else console.log('[AbstractAPIService.parsePasswordStorageContents] Data is empty.');
@@ -611,16 +569,16 @@ export abstract class AbstractAPIService {
   }
 
   checkPassword(callback: (password?: string) => void, cancelPromptCallback?: Function, options?: CRUDRequestOptions) {
-    if(this._password || (options && (!options.verifyPassword || options.selfOwner))){
+    if (this._password || (options && (!options.verifyPassword || options.selfOwner))) {
       callback(this._password);
     }
-    else{
+    else {
       this.promptPassword((password) => {
-        if(password != null){
+        if (password != null) {
           this.savePassword(password);
           callback(password);
         }
-        else if(cancelPromptCallback) cancelPromptCallback();
+        else if (cancelPromptCallback) cancelPromptCallback();
       });
     }
   }
@@ -657,7 +615,7 @@ export abstract class AbstractAPIService {
     let itemList: Object[] = [];
     let item;
 
-    for(let value in object){
+    for (let value in object) {
       item = {};
       item[valueField] = value;
       item[nameField] = object[value];
@@ -672,12 +630,12 @@ export abstract class AbstractAPIService {
   }
 
   private loadCache() {
-    if(this.nativeStorage && window['cordova']){
+    if (this.nativeStorage && window['cordova']) {
       this.nativeStorage.getItem('cache').then((json) => {
         console.log('[AbstractAPIService.loadCache] Cache loaded from native storage.');
         this._cache = Util.parseJSON(json);
       }, (error) => {
-        if(error && error.code != 2){ // Error code 2 (Item not found)
+        if (error && error.code != 2) { // Error code 2 (Item not found)
           console.warn('[AbstractAPIService.loadCache] Error when loading from native storage: ', error);
         }
       });
@@ -688,7 +646,7 @@ export abstract class AbstractAPIService {
   }
 
   private saveCache() {
-    if(this.nativeStorage && window['cordova']){
+    if (this.nativeStorage && window['cordova']) {
       let json = JSON.stringify(this._cache);
       this.nativeStorage.setItem('cache', json).then(() => {
         console.log('[AbstractAPIService.saveCache] Cache saved in native storage.');
@@ -697,7 +655,7 @@ export abstract class AbstractAPIService {
       });
     } else {
       let saved = Util.store(this.getCacheStorageKey(), this._cache);
-      if(saved){
+      if (saved) {
         console.log('[AbstractAPIService.saveCache] Cache saved in local storage.');
       } else {
         console.warn('[AbstractAPIService.saveCache] Local storage limit exceeded, cleaning up...');
@@ -707,15 +665,15 @@ export abstract class AbstractAPIService {
     }
   }
 
-  clearCache(endpoint?: string){
-    if(endpoint){
+  clearCache(endpoint?: string) {
+    if (endpoint) {
       let endpointHash: string = sha1(endpoint);
 
-      if(this._cache[endpointHash]){
+      if (this._cache[endpointHash]) {
         delete this._cache[endpointHash];
       }
     }
-    else{
+    else {
       this._cache = {};
     }
 
@@ -738,7 +696,7 @@ export abstract class AbstractAPIService {
   private saveResultInCache(endpoint: string, params: Object, result: any) {
     let endpointHash: string = sha1(endpoint);
     let cacheId = this.getParamsHash(params);
-    if(!this._cache[endpointHash]) this._cache[endpointHash] = {};
+    if (!this._cache[endpointHash]) this._cache[endpointHash] = {};
     this._cache[endpointHash][cacheId] = new CacheResult(result);
     this.saveCache();
   }
@@ -750,20 +708,14 @@ export abstract class AbstractAPIService {
 
   getCacheItem(key: string): Promise<any> {
     return new Promise((resolve, reject) => {
-      if(this.nativeStorage && window['cordova']){
+      if (this.nativeStorage && window['cordova']) {
         console.log('[AbstractAPIService.getCacheItem] Using native storage.');
         this.nativeStorage.getItem(key).then((value) => {
           console.log('[AbstractAPIService.getCacheItem] Item retrieved: ' + key);
           resolve(value);
         }, (error) => {
-          if(error.code == 2){ // NativeStorageError.ITEM_NOT_FOUND
-            console.info('[AbstractAPIService.getCacheItem] Item not found: ' + key);
-            resolve(null);
-          }
-          else{
-            console.warn('[AbstractAPIService.getCacheItem] Error: ', error);
-            reject(error);
-          }
+          console.warn('[AbstractAPIService.getCacheItem] Error: ', error);
+          reject(error);
         });
       } else {
         console.log('[AbstractAPIService.getCacheItem] Using local storage. Item retrieved: ' + key);
@@ -774,7 +726,7 @@ export abstract class AbstractAPIService {
 
   setCacheItem(key: string, value: any): Promise<any> {
     return new Promise((resolve, reject) => {
-      if(this.nativeStorage && window['cordova']){
+      if (this.nativeStorage && window['cordova']) {
         console.log('[AbstractAPIService.setCacheItem] Using secure storage.');
         this.nativeStorage.setItem(key, value).then(() => {
           console.log('[AbstractAPIService.setCacheItem] Item saved: ' + key);
@@ -793,7 +745,7 @@ export abstract class AbstractAPIService {
 
   getSecureItem(key: string): Promise<any> {
     return new Promise((resolve, reject) => {
-      if(this.nativeStorage && window['cordova']){
+      if (this.nativeStorage && window['cordova']) {
         console.log('[AbstractAPIService.getSecureItem] Using native storage.');
         this.nativeStorage.getItem(key).then((value) => {
           console.log('[AbstractAPIService.getSecureItem] Item retrieved: ' + key);
@@ -811,7 +763,7 @@ export abstract class AbstractAPIService {
 
   setSecureItem(key: string, value: any): Promise<any> {
     return new Promise((resolve, reject) => {
-      if(this.nativeStorage && window['cordova']){
+      if (this.nativeStorage && window['cordova']) {
         console.log('[AbstractAPIService.setSecureItem] Using secure storage.');
         this.nativeStorage.setItem(key, value).then(() => {
           console.log('[AbstractAPIService.setSecureItem] Item saved: ' + key);
@@ -833,12 +785,12 @@ export abstract class AbstractAPIService {
 
     params.set('key', this.API_KEY);
 
-    if(this._appVersion){
+    if (this._appVersion) {
       params.set('_VERSION', this._appVersion);
     }
 
-    if(additionalParams){
-      for(let name in additionalParams){
+    if (additionalParams) {
+      for (let name in additionalParams) {
         params.set(name, additionalParams[name]);
       }
     }
@@ -847,10 +799,10 @@ export abstract class AbstractAPIService {
   }
 
   private handleSuccess(response: any, onSuccess: Function) {
-    if(response.results !== undefined){
+    if (response.results !== undefined) {
       onSuccess(response, response.results);
     }
-    else{
+    else {
       onSuccess(response);
     }
   }
@@ -858,52 +810,52 @@ export abstract class AbstractAPIService {
   private handleError(options: APIRequestOptions, response: any, callback?: (error: string, response?: any) => void): void {
     let error: string;
 
-    if(response instanceof Response){
-      try{
+    if (response instanceof Response) {
+      try {
         let body = response.json();
 
-        if(body.error){
+        if (body.error) {
           error = body.error;
         }
 
-        if(body.code && body.code == 'passwordIncorrect'){
+        if (body.code && body.code == 'passwordIncorrect') {
           this.clearPassword();
         }
       }
-      catch(e){
+      catch (e) {
         console.error('[AbstractAPIService.handleError] ', e);
       }
     }
-    else if(typeof response == 'object'){
-      if(response.code && response.code == 'passwordIncorrect'){
+    else if (typeof response == 'object') {
+      if (response.code && response.code == 'passwordIncorrect') {
         this.clearPassword();
       }
 
-      if(response.error){
+      if (response.error) {
         error = response.error;
       }
-      else if(response.message){
+      else if (response.message) {
         error = response.message;
       }
-      else{
+      else {
         error = response.toString();
       }
     }
-    else if(typeof response == 'string'){
+    else if (typeof response == 'string') {
       error = response;
     }
 
-    if(!error){
+    if (!error) {
       error = this.ERROR_GENERIC;
     }
 
     console.warn('[AbstractAPIService] Error: ', error);
 
-    if(options.showErrors){
+    if (options.showErrors) {
       UI.alert(this.alertCtrl, error);
     }
 
-    if(callback instanceof Function){
+    if (callback instanceof Function) {
       callback(error, response);
     }
   }
