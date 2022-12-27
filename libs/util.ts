@@ -208,8 +208,6 @@ export var Util = {
 			return;
 		}
 
-		if(fileURL.indexOf('file://') !== 0) fileURL = 'file://' + fileURL;
-
 		resolveLocalFileSystemURL(fileURL, function(fileEntry){
 			onSuccess.call(Util, fileEntry);
 		}, function(error){

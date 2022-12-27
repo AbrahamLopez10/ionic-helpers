@@ -202,10 +202,12 @@ export abstract class AbstractAPIService {
         this.secureStorageObject = secureStorageObject;
         if(callback) callback();
       }).catch(error => {
-        console.error('[AbstractAPIService.useSecureStorage] Could not use secure storage: ', error);
+        console.warn('[AbstractAPIService.useSecureStorage] Could not use secure storage: ', error);
+        console.info('[AbstractAPIService.useSecureStorage] Using local storage as Secure Storage is not available.');
+      if(callback) callback();
       });
     } else {
-      console.warn('[AbstractAPIService.useSecureStorage] Using local storage as Cordova is not available.');
+      console.info('[AbstractAPIService.useSecureStorage] Using local storage as Cordova is not available.');
       if(callback) callback();
     }
   }
