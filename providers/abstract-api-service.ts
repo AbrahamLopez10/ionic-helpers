@@ -180,7 +180,7 @@ export abstract class AbstractAPIService {
     }, 1000);
   }
 
-  init(nativeStorage: NativeStorage, secureStorage?: SecureStorage) {
+  init(nativeStorage?: NativeStorage, secureStorage?: typeof SecureStorage) {
     this.nativeStorage = nativeStorage;
 
     this.loadCache();
@@ -195,7 +195,7 @@ export abstract class AbstractAPIService {
     this._ready = true;
   }
 
-  private useSecureStorage(secureStorage: SecureStorage, callback: () => void) {
+  private useSecureStorage(secureStorage: typeof SecureStorage, callback: () => void) {
     if(window['cordova']){
       secureStorage.create(this.getStorageKey()).then((secureStorageObject) => {
         console.info('[AbstractAPIService.useSecureStorage] Using secure storage.');
